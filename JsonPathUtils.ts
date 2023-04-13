@@ -1,5 +1,6 @@
 import { JSONPath } from "jsonpath-plus";
 import * as _ from "lodash";
+import * as moment from "moment";
 
 export namespace JsonPathUtils {
 	type TData = string | number | boolean | object | any[] | null;
@@ -10,6 +11,7 @@ export namespace JsonPathUtils {
 		objectPattern: string;
 		unwrap?: boolean;
 		parseString?: string;
+		datetimeFormat?: string;
 	}
 
 	type TPattern = string | number | boolean | TStringPattern | TObjectPattern;
@@ -67,6 +69,11 @@ export namespace JsonPathUtils {
 						} catch (e) {
 							result = null;
 						}
+						break;
+					case "datetime":
+						result = moment(result, "YYYY MM DD").isValid()
+							? moment.parseZone(result).format(pattern.datetimeFormat)
+							: null;
 						break;
 					default:
 						throw new Error(`Invalid "parseString" value "${pattern.parseString}"`);

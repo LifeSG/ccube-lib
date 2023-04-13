@@ -18,6 +18,8 @@ describe("JsonPathUtils", () => {
 		nullAttr: null,
 		boolAttr: false,
 		floatAttr: 12.3,
+		someDate: "2023-03-10",
+		someDatetime1: "2023-03-10T13:25:54+08:00",
 		phoneNumbers: [
 			{
 				type: "iPhone",
@@ -279,6 +281,58 @@ describe("JsonPathUtils", () => {
 
 			it("should return correct output for parseString array, no results", () => {
 				const pattern = { objectPattern: "$.abc", unwrap: true, parseString: "array" };
+				expect(JsonPathUtils.parse(pattern, data)).toEqual(null);
+			});
+		});
+
+		describe("Datetime", () => {
+			it("should return correct output for parseString datetime, default format (date input)", () => {
+				const pattern = { objectPattern: "$.someDate", unwrap: true, parseString: "datetime" };
+				expect(JsonPathUtils.parse(pattern, data)).toEqual("2023-03-10T00:00:00Z");
+			});
+
+			it("should return correct output for parseString datetime, default format (datetime input)", () => {
+				const pattern = { objectPattern: "$.someDatetime1", unwrap: true, parseString: "datetime" };
+				expect(JsonPathUtils.parse(pattern, data)).toEqual("2023-03-10T13:25:54+08:00");
+			});
+
+			it("should return correct output for parseString datetime, date format (date input)", () => {
+				const pattern = {
+					objectPattern: "$.someDate",
+					unwrap: true,
+					parseString: "datetime",
+					datetimeFormat: "DD MMM YYYY",
+				};
+				expect(JsonPathUtils.parse(pattern, data)).toEqual("10 Mar 2023");
+			});
+
+			it("should return correct output for parseString datetime, date format (datetime input)", () => {
+				const pattern = {
+					objectPattern: "$.someDatetime1",
+					unwrap: true,
+					parseString: "datetime",
+					datetimeFormat: "YYYY-MM-DD",
+				};
+				expect(JsonPathUtils.parse(pattern, data)).toEqual("2023-03-10");
+			});
+
+			it("should return correct output for parseString datetime, time format (datetime input)", () => {
+				const pattern = {
+					objectPattern: "$.someDatetime1",
+					unwrap: true,
+					parseString: "datetime",
+					datetimeFormat: "HH:mm",
+				};
+				expect(JsonPathUtils.parse(pattern, data)).toEqual("13:25");
+			});
+
+			it("should return correct output for parseString datetime, non-date string input", () => {
+				const pattern = { objectPattern: "$.firstName", unwrap: true, parseString: "datetime" };
+				expect(JsonPathUtils.parse(pattern, data)).toEqual(null);
+			});
+
+			it("should return correct output for parseString datetime, undefined input", () => {
+				const pattern = { objectPattern: "$.abc", unwrap: true, parseString: "datetime" };
 				expect(JsonPathUtils.parse(pattern, data)).toEqual(null);
 			});
 		});
