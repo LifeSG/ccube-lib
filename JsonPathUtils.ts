@@ -2,32 +2,35 @@ import { JSONPath } from "jsonpath-plus";
 import * as _ from "lodash";
 import * as moment from "moment";
 
-export namespace JsonPathUtils {
-	type TData = string | number | boolean | object | any[] | null;
-	interface TStringPattern {
-		stringPattern: string;
-	}
-	interface TObjectPattern {
-		objectPattern: string;
-		unwrap?: boolean;
-		parseString?: string;
-		datetimeFormat?: string;
-	}
 
-	type TPattern = string | number | boolean | TStringPattern | TObjectPattern;
-	type TReturn<T extends TPattern> = T extends TObjectPattern
-		? T extends { parseString: "boolean" }
-			? boolean
-			: T extends { parseString: "number" }
-			? number
-			: T extends { parseString: "array" }
-			? any[]
-			: T extends { parseString: "datetime" }
-			? string
-			: object | any[]
-		: T extends TStringPattern
-		? string
-		: T;
+export type TData = string | number | boolean | object | any[] | null;
+export interface TStringPattern {
+	stringPattern: string;
+}
+export interface TObjectPattern {
+	objectPattern: string;
+	unwrap?: boolean;
+	parseString?: string;
+	datetimeFormat?: string;
+}
+
+export type TPattern = string | number | boolean | TStringPattern | TObjectPattern;
+
+export type TReturn<T extends TPattern> = T extends TObjectPattern
+	? T extends { parseString: "boolean" }
+	? boolean
+	: T extends { parseString: "number" }
+	? number
+	: T extends { parseString: "array" }
+	? any[]
+	: T extends { parseString: "datetime" }
+	? string
+	: object | any[]
+	: T extends TStringPattern
+	? string
+	: T;
+
+export namespace JsonPathUtils {
 
 	const isStringPattern = (x: any): x is TStringPattern => (x as TStringPattern).stringPattern !== undefined;
 	const isObjectPattern = (x: any): x is TObjectPattern => (x as TObjectPattern).objectPattern !== undefined;
