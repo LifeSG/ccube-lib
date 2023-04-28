@@ -94,4 +94,44 @@ export namespace JsonPathUtils {
 		}
 		return pattern;
 	};
+
+	/**
+	 * This function substitutes the patterns in the given template with the actual values.
+	 * NOTE: The template patterns should contain JsonPath syntax that points to the actual values to replace with.
+	 * @param template The template of any arbitrary shape with the patterns to be replaced with.
+	 * @param values The object containing the actual values.
+	 * @returns The template with substituted values.
+	 */
+	export const replacePattern = (template: object, values: object) => {
+		const mapped = _.map(template, (value: object, key: string) => {
+			// Check if value is an object with keys 'stringPattern' or 'objectPattern'
+			if (_.isObject(value) && ("stringPattern" in value || "objectPattern" in value)) {
+				// Run util function to get value
+				const parsed = [key, JsonPathUtils.parse(value as TPattern, values)];
+				return parsed;
+			}
+			// Check if it is an array
+			if (_.isArray(value)) {
+				// Iterate over all elements in array and recursively call function for each, returning a mappedArray for collection
+				const mappedArray = _.map(value, (innerValue: object) => {
+					if (_.isObject(innerValue)) {
+						if ("stringPattern" in innerValue || "objectPattern" in innerValue) {
+							return JsonPathUtils.parse(innerValue as TPattern, values);
+						}
+						return replacePattern(innerValue, values);
+					}
+					return innerValue; // is a primitive value within array
+				});
+				return [key, mappedArray];
+			}
+			// It is an object
+			if (_.isObject(value)) {
+				// Recursive call
+				return [key, replacePattern(value, values)];
+			}
+			// Return as-is, primitive value
+			return [key, value];
+		});
+		return Object.fromEntries(mapped);
+	};
 }
