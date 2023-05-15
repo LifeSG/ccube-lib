@@ -507,14 +507,14 @@ describe("JsonPathUtils", () => {
 	describe("replacePattern", () => {
 		it("should iterate through object key/values and replace nested patterns", () => {
 			const template = {
-				mapping: {
-					search: {
-						resourceType: { stringPattern: "{{$.data.resourceType}}" },
-						resourceSubType: { stringPattern: "{{$.data.resourceSubType}}" },
-						startTime: { stringPattern: "{{$.data.date}}T{{$.data.startTime}}+08:00" },
-						endTime: { stringPattern: "{{$.data.date}}T{{$.data.endTime}}+08:00" },
-					},
+				search: {
+					resourceType: { stringPattern: "{{$.data.resourceType}}" },
+					resourceSubType: { stringPattern: "{{$.data.resourceSubType}}" },
+					startTime: { stringPattern: "{{$.data.date}}T{{$.data.startTime}}+08:00" },
+					endTime: { stringPattern: "{{$.data.date}}T{{$.data.endTime}}+08:00" },
 				},
+			};
+			const ctx = {
 				data: {
 					resourceType: "123",
 					resourceSubType: "234",
@@ -532,23 +532,23 @@ describe("JsonPathUtils", () => {
 					endTime: "2023-03-30T10:00+08:00",
 				},
 			};
-			expect(JsonPathUtils.replacePattern(template.mapping, template)).toEqual(expected);
+			expect(JsonPathUtils.replacePattern(template, ctx)).toEqual(expected);
 		});
 
 		it("should iterate through nested object key/values and replace nested patterns", () => {
 			const template = {
-				mapping: {
-					search: {
-						resource: {
-							resourceType: { stringPattern: "{{$.data.resourceType}}" },
-							resourceSubType: { stringPattern: "{{$.data.resourceSubType}}" },
-						},
-						dateTime: {
-							startTime: { stringPattern: "{{$.data.date}}T{{$.data.startTime}}+08:00" },
-							endTime: { stringPattern: "{{$.data.date}}T{{$.data.endTime}}+08:00" },
-						},
+				search: {
+					resource: {
+						resourceType: { stringPattern: "{{$.data.resourceType}}" },
+						resourceSubType: { stringPattern: "{{$.data.resourceSubType}}" },
+					},
+					dateTime: {
+						startTime: { stringPattern: "{{$.data.date}}T{{$.data.startTime}}+08:00" },
+						endTime: { stringPattern: "{{$.data.date}}T{{$.data.endTime}}+08:00" },
 					},
 				},
+			};
+			const ctx = {
 				data: {
 					resourceType: "123",
 					resourceSubType: "234",
@@ -570,23 +570,20 @@ describe("JsonPathUtils", () => {
 					},
 				},
 			};
-			expect(JsonPathUtils.replacePattern(template.mapping, template)).toEqual(expected);
+			expect(JsonPathUtils.replacePattern(template, ctx)).toEqual(expected);
 		});
 
 		it("should iterate through array objects and replace nested patterns", () => {
 			const template = {
-				mapping: {
-					search: [
-						{
-							resourceType: { stringPattern: "{{$.data.resourceType}}" },
-							resourceSubType: { stringPattern: "{{$.data.resourceSubType}}" },
-						},
-						{
-							startTime: { stringPattern: "{{$.data.date}}T{{$.data.startTime}}+08:00" },
-							endTime: { stringPattern: "{{$.data.date}}T{{$.data.endTime}}+08:00" },
-						},
-					],
-				},
+				search: [{
+					resourceType: { stringPattern: "{{$.data.resourceType}}" },
+					resourceSubType: { stringPattern: "{{$.data.resourceSubType}}" },
+				}, {
+					startTime: { stringPattern: "{{$.data.date}}T{{$.data.startTime}}+08:00" },
+					endTime: { stringPattern: "{{$.data.date}}T{{$.data.endTime}}+08:00" },
+				}],
+			};
+			const ctx = {
 				data: {
 					resourceType: "123",
 					resourceSubType: "234",
@@ -608,27 +605,27 @@ describe("JsonPathUtils", () => {
 					},
 				],
 			};
-			expect(JsonPathUtils.replacePattern(template.mapping, template)).toEqual(expected);
+			expect(JsonPathUtils.replacePattern(template, ctx)).toEqual(expected);
 		});
 
 		it("should iterate through and replace array object if it contains direct stringPattern or objectPattern keys", () => {
 			const template = {
-				mapping: {
-					search: {
-						resourceType: { stringPattern: "{{$.data.resourceType}}" },
-						resourceSubType: { stringPattern: "{{$.data.resourceSubType}}" },
-					},
-					dateTime: [
-						{ stringPattern: "{{$.data.date}}T{{$.data.startTime}}+08:00" },
-						{ stringPattern: "{{$.data.date}}T{{$.data.endTime}}+08:00" },
-						{
-							objectPattern: "$.data.updatedAt",
-							wrap: false,
-							parseString: "datetime",
-							datetimeFormat: "YYYY-MM-DD",
-						},
-					],
+				search: {
+					resourceType: { stringPattern: "{{$.data.resourceType}}" },
+					resourceSubType: { stringPattern: "{{$.data.resourceSubType}}" },
 				},
+				dateTime: [
+					{ stringPattern: "{{$.data.date}}T{{$.data.startTime}}+08:00" },
+					{ stringPattern: "{{$.data.date}}T{{$.data.endTime}}+08:00" },
+					{
+						objectPattern: "$.data.updatedAt",
+						unwrap: true,
+						parseString: "datetime",
+						datetimeFormat: "YYYY-MM-DD",
+					},
+				],
+			};
+			const ctx = {
 				data: {
 					resourceType: "123",
 					resourceSubType: "234",
@@ -641,29 +638,33 @@ describe("JsonPathUtils", () => {
 
 			const expected = {
 				search: {
-					resourceType: "123",
-					resourceSubType: "234",
-				},
-				dateTime: ["2023-03-30T09:00+08:00", "2023-03-30T10:00+08:00", "2023-03-10"],
+						resourceType: "123",
+						resourceSubType: "234",
+					},
+				dateTime: [
+					"2023-03-30T09:00+08:00",
+					"2023-03-30T10:00+08:00",
+					"2023-03-10",
+				],
 			};
-			expect(JsonPathUtils.replacePattern(template.mapping, template)).toEqual(expected);
+			expect(JsonPathUtils.replacePattern(template, ctx)).toEqual(expected);
 		});
 
 		it("should return primitive values as is", () => {
 			const template = {
-				mapping: {
-					search: {
-						resourceType: { stringPattern: "{{$.data.resourceType}}" },
-						resourceSubType: { stringPattern: "{{$.data.resourceSubType}}" },
-						name: "myResource",
-						quantity: 8,
-					},
-					dateTime: [
-						{ stringPattern: "{{$.data.date}}T{{$.data.startTime}}+08:00" },
-						{ stringPattern: "{{$.data.date}}T{{$.data.endTime}}+08:00" },
-						"2023-03-28",
-					],
+				search: {
+					resourceType: { stringPattern: "{{$.data.resourceType}}" },
+					resourceSubType: { stringPattern: "{{$.data.resourceSubType}}" },
+					name: "myResource",
+					quantity: 8,
 				},
+				dateTime: [
+					{ stringPattern: "{{$.data.date}}T{{$.data.startTime}}+08:00" },
+					{ stringPattern: "{{$.data.date}}T{{$.data.endTime}}+08:00" },
+					"2023-03-28",
+				],
+			};
+			const ctx = {
 				data: {
 					resourceType: "123",
 					resourceSubType: "234",
@@ -674,15 +675,75 @@ describe("JsonPathUtils", () => {
 			};
 
 			const expected = {
-				search: {
-					resourceType: "123",
-					resourceSubType: "234",
-					name: "myResource",
-					quantity: 8,
-				},
-				dateTime: ["2023-03-30T09:00+08:00", "2023-03-30T10:00+08:00", "2023-03-28"],
+				search:
+					{
+						resourceType: "123",
+						resourceSubType: "234",
+						name: "myResource",
+						quantity: 8,
+					},
+				dateTime: [
+					"2023-03-30T09:00+08:00",
+					"2023-03-30T10:00+08:00",
+					"2023-03-28",
+				],
 			};
-			expect(JsonPathUtils.replacePattern(template.mapping, template)).toEqual(expected);
+			expect(JsonPathUtils.replacePattern(template, ctx)).toEqual(expected);
+		});
+	});
+
+	describe('ArrayMapPattern', () => {
+		const template = {
+			mapped: {
+				arrayMapPattern: "$.phoneNumbers",
+				itemMapping: {
+					label: { stringPattern: "{{$.mapItem.type}} --- {{$.mapItem.number}}" },
+					value: { stringPattern: "{{$.mapItem.number}}" },
+					staticValue: 42,
+					index: { objectPattern: "$.mapIndex", unwrap: true },
+				},
+			},
+		};
+
+		it('should map an array', () => {
+			const expected = {
+				mapped: [
+					{
+						label: "iPhone --- 0123-4567-8888",
+						value: "0123-4567-8888",
+						staticValue: 42,
+						index: 0,
+					},
+					{
+						label: "home --- 0123-4567-8910",
+						value: "0123-4567-8910",
+						staticValue: 42,
+						index: 1,
+					},
+					{
+						label: "iPhone --- 0123-4567-1234",
+						value: "0123-4567-1234",
+						staticValue: 42,
+						index: 2,
+					},
+				],
+			};
+
+			expect(JsonPathUtils.replacePattern(template, data)).toEqual(expected);
+		});
+
+		it('should map empty array to empty array', () => {
+			const expected = {
+				mapped: [],
+			};
+			expect(JsonPathUtils.replacePattern(template, { phoneNumbers: [] })).toEqual(expected);
+		});
+
+		it('should map undefined array to undefined', () => {
+			const expected = {
+				mapped: undefined,
+			};
+			expect(JsonPathUtils.replacePattern(template, {})).toEqual(expected);
 		});
 	});
 });
