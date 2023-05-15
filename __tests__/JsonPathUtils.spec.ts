@@ -14,6 +14,7 @@ describe("JsonPathUtils", () => {
 		countString: "123",
 		boolString: "true",
 		stringifiedArray: "['a', 'b']",
+		singleElementArray: ["234"],
 		emptyArray: [],
 		nullAttr: null,
 		boolAttr: false,
@@ -204,6 +205,11 @@ describe("JsonPathUtils", () => {
 			it("should return correct output for object pattern with unwrap:true, with actual empty array result", () => {
 				const pattern = { objectPattern: "$.emptyArray", unwrap: true };
 				expect(JsonPathUtils.parse(pattern, data)).toEqual([]);
+			});
+
+			it("should return error for object pattern with unwrap:true, with actual single-element array result", () => {
+				const pattern = { objectPattern: "$.singleElementArray", unwrap: true };
+				expect(JsonPathUtils.parse(pattern, data)).toEqual(["234"]);
 			});
 		});
 	});

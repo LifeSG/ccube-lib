@@ -55,7 +55,8 @@ export namespace JsonPathUtils {
 	const getResultFromObjectPattern = (pattern: TObjectPattern, data: TData): TReturn<TObjectPattern> => {
 		let result = JSONPath({ path: pattern.objectPattern, json: data, wrap: !pattern.unwrap });
 		if (pattern.unwrap) {
-			if (Array.isArray(result) && result.length === 1) result = result[0];
+			if (Array.isArray(result) && result.length === 1 && pattern.objectPattern.match(/\[\?\(.+?\)\]/))
+				result = result[0];
 			if (pattern.parseString) {
 				switch (pattern.parseString) {
 					case "number":
