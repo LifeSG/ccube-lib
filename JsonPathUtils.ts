@@ -2,14 +2,13 @@ import { JSONPath } from "jsonpath-plus";
 import * as _ from "lodash";
 import * as moment from "moment";
 
-
 export type TData = string | number | boolean | object | any[] | null;
 export interface TStringPattern {
 	stringPattern: string;
 }
 export interface TObjectPattern {
 	objectPattern: string;
-	unwrap?: boolean;
+	wrap?: boolean | string;
 	parseString?: string;
 	datetimeFormat?: string;
 }
@@ -18,20 +17,19 @@ export type TPattern = string | number | boolean | TStringPattern | TObjectPatte
 
 export type TReturn<T extends TPattern> = T extends TObjectPattern
 	? T extends { parseString: "boolean" }
-	? boolean
-	: T extends { parseString: "number" }
-	? number
-	: T extends { parseString: "array" }
-	? any[]
-	: T extends { parseString: "datetime" }
-	? string
-	: object | any[]
+		? boolean
+		: T extends { parseString: "number" }
+		? number
+		: T extends { parseString: "array" }
+		? any[]
+		: T extends { parseString: "datetime" }
+		? string
+		: object | any[]
 	: T extends TStringPattern
 	? string
 	: T;
 
 export namespace JsonPathUtils {
-
 	const isStringPattern = (x: any): x is TStringPattern => (x as TStringPattern).stringPattern !== undefined;
 	const isObjectPattern = (x: any): x is TObjectPattern => (x as TObjectPattern).objectPattern !== undefined;
 	const falseyList = ["false", "0", "-0", "0n", "", "null", "undefined", "nan"];
@@ -53,36 +51,49 @@ export namespace JsonPathUtils {
 	};
 
 	const getResultFromObjectPattern = (pattern: TObjectPattern, data: TData): TReturn<TObjectPattern> => {
-		let result = JSONPath({ path: pattern.objectPattern, json: data, wrap: !pattern.unwrap });
-		if (pattern.unwrap) {
-			if (Array.isArray(result) && result.length === 1 && pattern.objectPattern.match(/\[\?\(.+?\)\]/))
-				result = result[0];
-			if (pattern.parseString) {
-				switch (pattern.parseString) {
-					case "number":
-						result = Number(result);
-						break;
-					case "boolean":
-						result =
-							typeof result === "string" ? !falseyList.includes(result.toLowerCase()) : Boolean(result);
-						break;
-					case "array":
-						try {
-							const parsedArr = JSON.parse(result.replace(/'/g, '"'));
-							result = _.isArray(parsedArr) ? parsedArr : null;
-						} catch (e) {
-							result = null;
-						}
-						break;
-					case "datetime":
-						result = moment(result, "YYYY MM DD").isValid()
-							? moment.parseZone(result).format(pattern.datetimeFormat)
-							: null;
-						break;
-					default:
-						throw new Error(`Invalid "parseString" value "${pattern.parseString}"`);
+		if (![true, false, "wrap", "unwrap", undefined].includes(pattern.wrap))
+			throw new Error(`Invalid "wrap" value "${pattern.wrap}"`);
+
+		const wrap = pattern.wrap === undefined ? true : _.isBoolean(pattern.wrap) ? pattern.wrap : false;
+		let result = JSONPath({ path: pattern.objectPattern, json: data, wrap });
+
+		switch (pattern.wrap) {
+			case "wrap":
+				if (!Array.isArray(result)) result = [result];
+				break;
+			case "unwrap":
+				if (Array.isArray(result) && result.length === 1) result = result[0];
+			// Fall-through
+			case false:
+				if (pattern.parseString) result = parseResultFromString(pattern, result);
+				break;
+		}
+		return result;
+	};
+
+	const parseResultFromString = (pattern: TObjectPattern, result: any) => {
+		switch (pattern.parseString) {
+			case "number":
+				result = Number(result);
+				break;
+			case "boolean":
+				result = typeof result === "string" ? !falseyList.includes(result.toLowerCase()) : Boolean(result);
+				break;
+			case "array":
+				try {
+					const parsedArr = JSON.parse(result.replace(/'/g, '"'));
+					result = _.isArray(parsedArr) ? parsedArr : null;
+				} catch (e) {
+					result = null;
 				}
-			}
+				break;
+			case "datetime":
+				result = moment(result, "YYYY MM DD").isValid()
+					? moment.parseZone(result).format(pattern.datetimeFormat)
+					: null;
+				break;
+			default:
+				throw new Error(`Invalid "parseString" value "${pattern.parseString}"`);
 		}
 		return result;
 	};
