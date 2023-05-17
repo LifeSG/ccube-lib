@@ -62,7 +62,7 @@ export namespace JsonPathUtils {
 
 		for (const parsedPattern of parsedPatternsList) {
 			let result = JSONPath({ path: parsedPattern[1], json: data, wrap: false });
-			if (Array.isArray(result)) {
+			if (_.isArray(result)) {
 				if (result.length === 1) result = result[0];
 				else result = JSON.stringify(result);
 			}
@@ -79,10 +79,10 @@ export namespace JsonPathUtils {
 		switch (pattern.wrap) {
 			case "wrap":
 				if (result === undefined) result = [];
-				else if (!Array.isArray(result)) result = [result];
+				else if (!_.isArray(result)) result = [result];
 				break;
 			case "unwrap":
-				if (Array.isArray(result) && result.length === 1) result = result[0];
+				if (_.isArray(result) && result.length === 1) result = result[0];
 			// Fall-through
 			case false:
 				if (pattern.parseString) result = parseResultFromString(pattern, result);
