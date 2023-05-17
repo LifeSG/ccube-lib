@@ -9,7 +9,7 @@ export interface TStringPattern {
 
 export interface TObjectPattern {
 	objectPattern: string;
-	wrap?: boolean | string;
+	wrap?: boolean | "wrap" | "unwrap";
 	parseString?: string;
 	datetimeFormat?: string;
 }
@@ -73,10 +73,7 @@ export namespace JsonPathUtils {
 	};
 
 	const getResultFromObjectPattern = (pattern: TObjectPattern, data: TData): TReturn<TObjectPattern> => {
-		if (![true, false, "wrap", "unwrap", undefined].includes(pattern.wrap))
-			throw new Error(`Invalid "wrap" value "${pattern.wrap}"`);
-
-		const wrap = pattern.wrap === undefined ? true : _.isBoolean(pattern.wrap) ? pattern.wrap : false;
+		const wrap = pattern.wrap === undefined || pattern.wrap === true;
 		let result = JSONPath({ path: pattern.objectPattern, json: data, wrap });
 
 		switch (pattern.wrap) {

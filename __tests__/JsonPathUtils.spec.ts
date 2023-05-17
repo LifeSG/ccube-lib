@@ -1,4 +1,4 @@
-import { JsonPathUtils } from "../JsonPathUtils";
+import { JsonPathUtils, TPattern } from "../JsonPathUtils";
 
 // tslint:disable: no-big-function
 describe("JsonPathUtils", () => {
@@ -231,17 +231,17 @@ describe("JsonPathUtils", () => {
 
 		describe("Wrap: 'unwrap'", () => {
 			it("should return correct output for object pattern with wrap:'unwrap'", () => {
-				const pattern = { objectPattern: "$.age", wrap: "unwrap" };
+				const pattern: TPattern = { objectPattern: "$.age", wrap: "unwrap" };
 				expect(JsonPathUtils.parse(pattern, data)).toEqual(26);
 			});
 
 			it("should return correct output for object pattern with wrap:'unwrap', string result", () => {
-				const pattern = { objectPattern: "$.countString", wrap: "unwrap" };
+				const pattern: TPattern = { objectPattern: "$.countString", wrap: "unwrap" };
 				expect(JsonPathUtils.parse(pattern, data)).toEqual("123");
 			});
 
 			it("should return correct output for object pattern with wrap:'unwrap', obj result", () => {
-				const pattern = { objectPattern: "$.address", wrap: "unwrap" };
+				const pattern: TPattern = { objectPattern: "$.address", wrap: "unwrap" };
 				expect(JsonPathUtils.parse(pattern, data)).toEqual({
 					streetAddress: "naist street",
 					city: "Nara",
@@ -250,12 +250,12 @@ describe("JsonPathUtils", () => {
 			});
 
 			it("should return correct output for object filter pattern with wrap:'unwrap'", () => {
-				const pattern = { objectPattern: "$.phoneNumbers[?(@.type=='home')]", wrap: "unwrap" };
+				const pattern: TPattern = { objectPattern: "$.phoneNumbers[?(@.type=='home')]", wrap: "unwrap" };
 				expect(JsonPathUtils.parse(pattern, data)).toEqual({ type: "home", number: "0123-4567-8910" });
 			});
 
 			it("should return correct output for object filter pattern with wrap:'unwrap', multiple results", () => {
-				const pattern = { objectPattern: "$.phoneNumbers[?(@.type=='iPhone')]", wrap: "unwrap" };
+				const pattern: TPattern = { objectPattern: "$.phoneNumbers[?(@.type=='iPhone')]", wrap: "unwrap" };
 				expect(JsonPathUtils.parse(pattern, data)).toEqual([
 					{ type: "iPhone", number: "0123-4567-8888" },
 					{ type: "iPhone", number: "0123-4567-1234" },
@@ -263,49 +263,49 @@ describe("JsonPathUtils", () => {
 			});
 
 			it("should return correct output for object pattern with wrap:'unwrap', no results", () => {
-				const pattern = { objectPattern: "$.abc", wrap: "unwrap" };
+				const pattern: TPattern = { objectPattern: "$.abc", wrap: "unwrap" };
 				expect(JsonPathUtils.parse(pattern, data)).toEqual(undefined);
 			});
 
 			it("should return correct output for object filter pattern with wrap:'unwrap', no results", () => {
-				const pattern = { objectPattern: "$.phoneNumbers[?(@.type=='abc')]", wrap: "unwrap" };
+				const pattern: TPattern = { objectPattern: "$.phoneNumbers[?(@.type=='abc')]", wrap: "unwrap" };
 				expect(JsonPathUtils.parse(pattern, data)).toEqual(undefined);
 			});
 
 			it("should return correct output for object pattern with wrap:'unwrap', with actual null result", () => {
-				const pattern = { objectPattern: "$.nullAttr", wrap: "unwrap" };
+				const pattern: TPattern = { objectPattern: "$.nullAttr", wrap: "unwrap" };
 				expect(JsonPathUtils.parse(pattern, data)).toEqual(null);
 			});
 
 			it("should return correct output for object pattern with wrap:'unwrap', with actual empty array result", () => {
-				const pattern = { objectPattern: "$.emptyArray", wrap: "unwrap" };
+				const pattern: TPattern = { objectPattern: "$.emptyArray", wrap: "unwrap" };
 				expect(JsonPathUtils.parse(pattern, data)).toEqual([]);
 			});
 
 			it("should return correct output for object pattern with wrap:'unwrap', with actual single-element array result", () => {
-				const pattern = { objectPattern: "$.singleElemArray", wrap: "unwrap" };
+				const pattern: TPattern = { objectPattern: "$.singleElemArray", wrap: "unwrap" };
 				expect(JsonPathUtils.parse(pattern, data)).toEqual("234");
 			});
 
 			it("should return correct output for object pattern with wrap:'unwrap', with actual multi-element array result", () => {
-				const pattern = { objectPattern: "$.multiElemArray", wrap: "unwrap" };
+				const pattern: TPattern = { objectPattern: "$.multiElemArray", wrap: "unwrap" };
 				expect(JsonPathUtils.parse(pattern, data)).toEqual(["234", "987"]);
 			});
 		});
 
 		describe("Wrap: 'wrap'", () => {
 			it("should return correct output for object pattern with wrap:'wrap'", () => {
-				const pattern = { objectPattern: "$.age", wrap: "wrap" };
+				const pattern: TPattern = { objectPattern: "$.age", wrap: "wrap" };
 				expect(JsonPathUtils.parse(pattern, data)).toEqual([26]);
 			});
 
 			it("should return correct output for object pattern with wrap:'wrap', string result", () => {
-				const pattern = { objectPattern: "$.countString", wrap: "wrap" };
+				const pattern: TPattern = { objectPattern: "$.countString", wrap: "wrap" };
 				expect(JsonPathUtils.parse(pattern, data)).toEqual(["123"]);
 			});
 
 			it("should return correct output for object pattern with wrap:'wrap', obj result", () => {
-				const pattern = { objectPattern: "$.address", wrap: "wrap" };
+				const pattern: TPattern = { objectPattern: "$.address", wrap: "wrap" };
 				expect(JsonPathUtils.parse(pattern, data)).toEqual([
 					{
 						streetAddress: "naist street",
@@ -316,12 +316,12 @@ describe("JsonPathUtils", () => {
 			});
 
 			it("should return correct output for object filter pattern with wrap:'unwrap'", () => {
-				const pattern = { objectPattern: "$.phoneNumbers[?(@.type=='home')]", wrap: "wrap" };
+				const pattern: TPattern = { objectPattern: "$.phoneNumbers[?(@.type=='home')]", wrap: "wrap" };
 				expect(JsonPathUtils.parse(pattern, data)).toEqual([{ type: "home", number: "0123-4567-8910" }]);
 			});
 
 			it("should return correct output for object filter pattern with wrap:'wrap', multiple results", () => {
-				const pattern = { objectPattern: "$.phoneNumbers[?(@.type=='iPhone')]", wrap: "wrap" };
+				const pattern: TPattern = { objectPattern: "$.phoneNumbers[?(@.type=='iPhone')]", wrap: "wrap" };
 				expect(JsonPathUtils.parse(pattern, data)).toEqual([
 					{ type: "iPhone", number: "0123-4567-8888" },
 					{ type: "iPhone", number: "0123-4567-1234" },
@@ -329,41 +329,34 @@ describe("JsonPathUtils", () => {
 			});
 
 			it("should return correct output for object pattern with wrap:'wrap', no results", () => {
-				const pattern = { objectPattern: "$.abc", wrap: "wrap" };
+				const pattern: TPattern = { objectPattern: "$.abc", wrap: "wrap" };
 				expect(JsonPathUtils.parse(pattern, data)).toEqual([]);
 			});
 
 			it("should return correct output for object filter pattern with wrap:'wrap', no results", () => {
-				const pattern = { objectPattern: "$.phoneNumbers[?(@.type=='abc')]", wrap: "wrap" };
+				const pattern: TPattern = { objectPattern: "$.phoneNumbers[?(@.type=='abc')]", wrap: "wrap" };
 				expect(JsonPathUtils.parse(pattern, data)).toEqual([]);
 			});
 
 			it("should return correct output for object pattern with wrap:'wrap', with actual null result", () => {
-				const pattern = { objectPattern: "$.nullAttr", wrap: "wrap" };
+				const pattern: TPattern = { objectPattern: "$.nullAttr", wrap: "wrap" };
 				expect(JsonPathUtils.parse(pattern, data)).toEqual([null]);
 			});
 
 			it("should return correct output for object pattern with wrap:'wrap', with actual empty array result", () => {
-				const pattern = { objectPattern: "$.emptyArray", wrap: "wrap" };
+				const pattern: TPattern = { objectPattern: "$.emptyArray", wrap: "wrap" };
 				expect(JsonPathUtils.parse(pattern, data)).toEqual([]);
 			});
 
 			it("should return correct output for object pattern with wrap:'wrap', with actual single-element array result", () => {
-				const pattern = { objectPattern: "$.singleElemArray", wrap: "wrap" };
+				const pattern: TPattern = { objectPattern: "$.singleElemArray", wrap: "wrap" };
 				expect(JsonPathUtils.parse(pattern, data)).toEqual(["234"]);
 			});
 
 			it("should return correct output for object pattern with wrap:'wrap', with actual multi-element array result", () => {
-				const pattern = { objectPattern: "$.multiElemArray", wrap: "wrap" };
+				const pattern: TPattern = { objectPattern: "$.multiElemArray", wrap: "wrap" };
 				expect(JsonPathUtils.parse(pattern, data)).toEqual(["234", "987"]);
 			});
-		});
-
-		it("should return error for invalid wrap value", () => {
-			const pattern = { objectPattern: "$.age", wrap: "abc" };
-			expect(() => JsonPathUtils.parse(pattern, data)).toThrowError(
-				new Error(`Invalid "wrap" value "${pattern.wrap}"`),
-			);
 		});
 	});
 
