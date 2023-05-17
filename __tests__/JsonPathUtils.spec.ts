@@ -330,12 +330,12 @@ describe("JsonPathUtils", () => {
 
 			it("should return correct output for object pattern with wrap:'wrap', no results", () => {
 				const pattern = { objectPattern: "$.abc", wrap: "wrap" };
-				expect(JsonPathUtils.parse(pattern, data)).toEqual([undefined]);
+				expect(JsonPathUtils.parse(pattern, data)).toEqual([]);
 			});
 
 			it("should return correct output for object filter pattern with wrap:'wrap', no results", () => {
 				const pattern = { objectPattern: "$.phoneNumbers[?(@.type=='abc')]", wrap: "wrap" };
-				expect(JsonPathUtils.parse(pattern, data)).toEqual([undefined]);
+				expect(JsonPathUtils.parse(pattern, data)).toEqual([]);
 			});
 
 			it("should return correct output for object pattern with wrap:'wrap', with actual null result", () => {

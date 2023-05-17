@@ -81,7 +81,8 @@ export namespace JsonPathUtils {
 
 		switch (pattern.wrap) {
 			case "wrap":
-				if (!Array.isArray(result)) result = [result];
+				if (result === undefined) result = [];
+				else if (!Array.isArray(result)) result = [result];
 				break;
 			case "unwrap":
 				if (Array.isArray(result) && result.length === 1) result = result[0];
