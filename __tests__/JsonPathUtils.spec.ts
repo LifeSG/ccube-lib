@@ -619,7 +619,7 @@ describe("JsonPathUtils", () => {
 					{ stringPattern: "{{$.data.date}}T{{$.data.endTime}}+08:00" },
 					{
 						objectPattern: "$.data.updatedAt",
-						unwrap: true,
+						wrap: false,
 						parseString: "datetime",
 						datetimeFormat: "YYYY-MM-DD",
 					},
@@ -700,7 +700,7 @@ describe("JsonPathUtils", () => {
 					label: { stringPattern: "{{$.mapItem.type}} --- {{$.mapItem.number}}" },
 					value: { stringPattern: "{{$.mapItem.number}}" },
 					staticValue: 42,
-					index: { objectPattern: "$.mapIndex", unwrap: true },
+					index: { objectPattern: "$.mapIndex", wrap: false },
 				},
 			},
 		};
@@ -739,9 +739,9 @@ describe("JsonPathUtils", () => {
 			expect(JsonPathUtils.replacePattern(template, { phoneNumbers: [] })).toEqual(expected);
 		});
 
-		it('should map undefined array to undefined', () => {
+		it('should map undefined array to empty array', () => {
 			const expected = {
-				mapped: undefined,
+				mapped: [],
 			};
 			expect(JsonPathUtils.replacePattern(template, {})).toEqual(expected);
 		});
@@ -799,8 +799,8 @@ describe("JsonPathUtils", () => {
 			const template = {
 				p: {
 					conditionalPattern: "$.age",
-					trueValue: { objectPattern: "$.firstName", unwrap: true },
-					falseValue: { objectPattern: "$.lastName", unwrap: true },
+					trueValue: { objectPattern: "$.firstName", wrap: false },
+					falseValue: { objectPattern: "$.lastName", wrap: false },
 				},
 			};
 			const expected = {
@@ -813,8 +813,8 @@ describe("JsonPathUtils", () => {
 			const template = {
 				p: {
 					conditionalPattern: "$.boolAttr",
-					trueValue: { objectPattern: "$.firstName", unwrap: true },
-					falseValue: { objectPattern: "$.lastName", unwrap: true },
+					trueValue: { objectPattern: "$.firstName", wrap: false },
+					falseValue: { objectPattern: "$.lastName", wrap: false },
 				},
 			};
 			const expected = {
@@ -827,8 +827,8 @@ describe("JsonPathUtils", () => {
 			const template = {
 				p: {
 					conditionalPattern: "$.phoneNumbers[?(@.type=='abc')]",
-					trueValue: { objectPattern: "$.firstName", unwrap: true },
-					falseValue: { objectPattern: "$.lastName", unwrap: true },
+					trueValue: { objectPattern: "$.firstName", wrap: false },
+					falseValue: { objectPattern: "$.lastName", wrap: false },
 				},
 			};
 			const expected = {

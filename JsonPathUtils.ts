@@ -33,20 +33,15 @@ export type TPattern =
 	TConditionalPattern;
 
 export type TReturn<T extends TPattern> = T extends TObjectPattern
-	? T extends { parseString: "boolean" }
-		? boolean
-		: T extends { parseString: "number" }
-			? number
-			: T extends { parseString: "array" }
-				? any[]
-				: T extends { parseString: "datetime" }
-					? string
+	? T extends { parseString: "boolean" } ? boolean
+		: T extends { parseString: "number" } ? number
+			: T extends { parseString: "array" } ? any[]
+				: T extends { parseString: "datetime" } ? string
 					: object | any[]
-	: T extends TStringPattern
-		? string
-		: T extends TConditionalPattern
-			? TData
-			: T;
+	: T extends TStringPattern ? string
+		: T extends TArrayMapPattern ? any | any[]
+			: T extends TConditionalPattern ? TData
+				: T;
 
 export namespace JsonPathUtils {
 
@@ -132,8 +127,8 @@ export namespace JsonPathUtils {
 	};
 
 	const getResultFromArrayMapPattern = (pattern: TArrayMapPattern, data: TData): TReturn<TArrayMapPattern> => {
-		const array = JSONPath({ path: pattern.arrayMapPattern, json: data, wrap: false });
-		if (!array) return array;
+		const array = parse({ objectPattern: pattern.arrayMapPattern, wrap: "wrap" }, data);
+		if (!_.isArray(array)) return array;
 		return array.map((v, i) => {
 			return replacePattern(pattern.itemMapping, { data, mapItem: v, mapIndex: i });
 		});
@@ -141,7 +136,11 @@ export namespace JsonPathUtils {
 
 	const getResultFromConditionalPattern = (pattern: TConditionalPattern,
 		data: TData): TReturn<TConditionalPattern> => {
-		const cond = getResultFromObjectPattern({objectPattern: pattern.conditionalPattern, unwrap: true, parseString: "boolean"}, data);
+		const cond = getResultFromObjectPattern({
+			objectPattern: pattern.conditionalPattern,
+			wrap: "unwrap",
+			parseString: "boolean",
+		}, data);
 		if (cond) {
 			return replacePattern(pattern.trueValue, data);
 		}
