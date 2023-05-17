@@ -19,7 +19,18 @@ export interface TArrayMapPattern {
 	itemMapping: TPattern;
 }
 
-export type TPattern = string | number | boolean | TStringPattern | TObjectPattern | TArrayMapPattern;
+export interface TConditionalPattern {
+	conditionalPattern: string;
+	trueValue: TPattern;
+	falseValue?: TPattern;
+}
+
+export type TPattern =
+	string | number | boolean |
+	TStringPattern |
+	TObjectPattern |
+	TArrayMapPattern |
+	TConditionalPattern;
 
 export type TReturn<T extends TPattern> = T extends TObjectPattern
 	? T extends { parseString: "boolean" }
@@ -32,19 +43,23 @@ export type TReturn<T extends TPattern> = T extends TObjectPattern
 					? string
 					: object | any[]
 	: T extends TStringPattern
-	? string
-	: T;
+		? string
+		: T extends TConditionalPattern
+			? TData
+			: T;
 
 export namespace JsonPathUtils {
 
 	const isPattern = (x: any): boolean => _.isObject(x) && (
 		"stringPattern" in x ||
 		"objectPattern" in x ||
-		"arrayMapPattern" in x);
+		"arrayMapPattern" in x ||
+		"conditionalPattern" in x);
 	const isStringPattern = (x: any): x is TStringPattern => (x as TStringPattern).stringPattern !== undefined;
 	const isObjectPattern = (x: any): x is TObjectPattern => (x as TObjectPattern).objectPattern !== undefined;
 	const isArrayMapPattern = (x: any): x is TArrayMapPattern => (x as TArrayMapPattern).arrayMapPattern !== undefined;
-	const falseyList = ["false", "0", "-0", "0n", "", "null", "undefined", "nan"];
+	const isConditionalPattern = (x: any): x is TConditionalPattern => (x as TConditionalPattern).conditionalPattern !== undefined;
+	const falseyList = ["false", "0", "-0", "0n", "", "null", "undefined", "nan", "[]"];
 
 	const getResultFromStringPattern = (pattern: TStringPattern, data: TData): TReturn<TStringPattern> => {
 		const parsedPatternsList = pattern.stringPattern.matchAll(/\{\{(.*?)\}\}/g);
@@ -89,7 +104,13 @@ export namespace JsonPathUtils {
 				result = Number(result);
 				break;
 			case "boolean":
-				result = typeof result === "string" ? !falseyList.includes(result.toLowerCase()) : Boolean(result);
+				if (typeof result === "string") {
+					result = !falseyList.includes(result.toLowerCase());
+				} else if (_.isArray(result) && _.isEmpty(result)) {
+					result = false;
+				} else {
+					result = Boolean(result);
+				}
 				break;
 			case "array":
 				try {
@@ -114,9 +135,17 @@ export namespace JsonPathUtils {
 		const array = JSONPath({ path: pattern.arrayMapPattern, json: data, wrap: false });
 		if (!array) return array;
 		return array.map((v, i) => {
-			if (!_.isObject(pattern.itemMapping)) return v;
 			return replacePattern(pattern.itemMapping, { data, mapItem: v, mapIndex: i });
 		});
+	};
+
+	const getResultFromConditionalPattern = (pattern: TConditionalPattern,
+		data: TData): TReturn<TConditionalPattern> => {
+		const cond = getResultFromObjectPattern({objectPattern: pattern.conditionalPattern, unwrap: true, parseString: "boolean"}, data);
+		if (cond) {
+			return replacePattern(pattern.trueValue, data);
+		}
+		return replacePattern(pattern.falseValue, data);
 	};
 
 	export const parse = <T extends TPattern>(pattern: T, data: TData): TReturn<T | TPattern> => {
@@ -126,6 +155,8 @@ export namespace JsonPathUtils {
 			return getResultFromObjectPattern(pattern, data);
 		} else if (isArrayMapPattern(pattern)) {
 			return getResultFromArrayMapPattern(pattern, data);
+		} else if (isConditionalPattern(pattern)) {
+			return getResultFromConditionalPattern(pattern, data);
 		}
 		return pattern;
 	};
@@ -137,21 +168,23 @@ export namespace JsonPathUtils {
 	 * @param values The object containing the actual values.
 	 * @returns The template with substituted values.
 	 */
-	export const replacePattern = (template: object, values: object) => {
+	export const replacePattern = (template: unknown, values: TData) => {
+		if (!_.isObject(template)) return template;
+		if (isPattern(template)) return parse(template as TPattern, values);
+
 		const mapped = _.map(template, (value: object, key: string) => {
 			// Check if value is an object with keys 'stringPattern' or 'objectPattern'
 			if (isPattern(value)) {
 				// Run util function to get value
-				const parsed = [key, JsonPathUtils.parse(value as TPattern, values)];
-				return parsed;
+				return [key, parse(value as TPattern, values)];
 			}
 			// Check if it is an array
 			if (_.isArray(value)) {
 				// Iterate over all elements in array and recursively call function for each, returning a mappedArray for collection
 				const mappedArray = _.map(value, (innerValue: object) => {
 					if (_.isObject(innerValue)) {
-						if (isPattern(innerValue)) { // TODO needed?
-							return JsonPathUtils.parse(innerValue as TPattern, values);
+						if (isPattern(innerValue)) {
+							return parse(innerValue as TPattern, values);
 						}
 						return replacePattern(innerValue, values);
 					}

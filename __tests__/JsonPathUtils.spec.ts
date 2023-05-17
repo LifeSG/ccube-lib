@@ -746,4 +746,95 @@ describe("JsonPathUtils", () => {
 			expect(JsonPathUtils.replacePattern(template, {})).toEqual(expected);
 		});
 	});
+
+	describe('ConditionalPattern', () => {
+		it('should return the true primitive value', () => {
+			const template = {
+				p: {
+					conditionalPattern: "$.field",
+					trueValue: "foo",
+					falseValue: "bar",
+				},
+			};
+			const expected = {
+				p: "foo",
+			};
+			expect(JsonPathUtils.replacePattern(template, { field: "value" })).toEqual(expected);
+			expect(JsonPathUtils.replacePattern(template, { field: 1 })).toEqual(expected);
+			expect(JsonPathUtils.replacePattern(template, { field: ["hi"] })).toEqual(expected);
+			expect(JsonPathUtils.replacePattern(template, { field: { hi: "hello" } })).toEqual(expected);
+		});
+
+		it('should return the false primitive value', () => {
+			const template = {
+				p: {
+					conditionalPattern: "$.field",
+					trueValue: "foo",
+					falseValue: "bar",
+				},
+			};
+			const expected = {
+				p: "bar",
+			};
+			expect(JsonPathUtils.replacePattern(template, {})).toEqual(expected);
+			expect(JsonPathUtils.replacePattern(template, { field: "" })).toEqual(expected);
+			expect(JsonPathUtils.replacePattern(template, { field: false })).toEqual(expected);
+			expect(JsonPathUtils.replacePattern(template, { field: [] })).toEqual(expected);
+		});
+
+		it('should return undefined if no false value given and it is false', () => {
+			const template = {
+				p: {
+					conditionalPattern: "$.field",
+					trueValue: "foo",
+				},
+			};
+			const expected = {
+				p: undefined,
+			};
+			expect(JsonPathUtils.replacePattern(template, { field: "" })).toEqual(expected);
+		});
+
+		it('should evaluate the true pattern', () => {
+			const template = {
+				p: {
+					conditionalPattern: "$.age",
+					trueValue: { objectPattern: "$.firstName", unwrap: true },
+					falseValue: { objectPattern: "$.lastName", unwrap: true },
+				},
+			};
+			const expected = {
+				p: "John",
+			};
+			expect(JsonPathUtils.replacePattern(template, data)).toEqual(expected);
+		});
+
+		it('should evaluate the false pattern', () => {
+			const template = {
+				p: {
+					conditionalPattern: "$.boolAttr",
+					trueValue: { objectPattern: "$.firstName", unwrap: true },
+					falseValue: { objectPattern: "$.lastName", unwrap: true },
+				},
+			};
+			const expected = {
+				p: "doe",
+			};
+			expect(JsonPathUtils.replacePattern(template, data)).toEqual(expected);
+		});
+
+		it('should evaluate the false pattern for empty array', () => {
+			const template = {
+				p: {
+					conditionalPattern: "$.phoneNumbers[?(@.type=='abc')]",
+					trueValue: { objectPattern: "$.firstName", unwrap: true },
+					falseValue: { objectPattern: "$.lastName", unwrap: true },
+				},
+			};
+			const expected = {
+				p: "doe",
+			};
+			expect(JsonPathUtils.replacePattern(template, data)).toEqual(expected);
+		});
+	});
 });
