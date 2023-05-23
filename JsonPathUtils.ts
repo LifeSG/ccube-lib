@@ -3,9 +3,17 @@ import * as _ from "lodash";
 import * as moment from "moment";
 
 export type TData = string | number | boolean | object | any[] | null;
-export interface TStringPattern {
-	stringPattern: string;
+
+export interface TPatternWithError {
+	onError?: "ignore" | "throwError";
 }
+export interface TPatternWithFallback {
+	onError: "fallback";
+	fallback: string;
+}
+export type TPatternWithErrorHandling<T> = TPatternWithError & T | TPatternWithFallback & T;
+
+export type TStringPattern = TPatternWithErrorHandling<{ stringPattern: string; }>;
 
 export interface TObjectPattern {
 	objectPattern: string;
@@ -34,14 +42,14 @@ export type TPattern =
 
 export type TReturn<T extends TPattern> = T extends TObjectPattern
 	? T extends { parseString: "boolean" } ? boolean
-		: T extends { parseString: "number" } ? number
-			: T extends { parseString: "array" } ? any[]
-				: T extends { parseString: "datetime" } ? string
-					: object | any[]
+	: T extends { parseString: "number" } ? number
+	: T extends { parseString: "array" } ? any[]
+	: T extends { parseString: "datetime" } ? string
+	: object | any[]
 	: T extends TStringPattern ? string
-		: T extends TArrayMapPattern ? any | any[]
-			: T extends TConditionalPattern ? TData
-				: T;
+	: T extends TArrayMapPattern ? any | any[]
+	: T extends TConditionalPattern ? TData
+	: T;
 
 export namespace JsonPathUtils {
 
@@ -59,14 +67,27 @@ export namespace JsonPathUtils {
 	const getResultFromStringPattern = (pattern: TStringPattern, data: TData): TReturn<TStringPattern> => {
 		const parsedPatternsList = pattern.stringPattern.matchAll(/\{\{(.*?)\}\}/g);
 		let output = pattern.stringPattern;
+		let hasMissingValues = false;
 
 		for (const parsedPattern of parsedPatternsList) {
 			let result = JSONPath({ path: parsedPattern[1], json: data, wrap: false });
 			if (_.isArray(result)) {
+				if (!result.length) hasMissingValues = true;
 				if (result.length === 1) result = result[0];
 				else result = JSON.stringify(result);
+			} else if (result === undefined) {
+				hasMissingValues = true;
 			}
 			output = output.replace(parsedPattern[0], result === undefined ? "" : result);
+		}
+
+
+		if (hasMissingValues) {
+			if (pattern.onError === "throwError") {
+				throw new Error(`Missing output from "stringPattern" "${pattern.stringPattern}"`);
+			} else if (pattern.onError === "fallback" && pattern.fallback) {
+				return getResultFromStringPattern({ ...pattern, stringPattern: pattern.fallback }, data);
+			}
 		}
 
 		return output;

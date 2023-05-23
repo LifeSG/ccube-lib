@@ -1,4 +1,4 @@
-import { JsonPathUtils, TPattern } from "../JsonPathUtils";
+import { JsonPathUtils, TPattern, TStringPattern } from "../JsonPathUtils";
 
 // tslint:disable: no-big-function
 describe("JsonPathUtils", () => {
@@ -95,6 +95,42 @@ describe("JsonPathUtils", () => {
 		it("should return correct output for string pattern with actual empty array result", () => {
 			const pattern = { stringPattern: "{{$.emptyArray}}" };
 			expect(JsonPathUtils.parse(pattern, data)).toEqual("[]");
+		});
+
+		it("should throw error if some results are missing and onError=throwError", () => {
+			const pattern: TStringPattern = {
+				stringPattern: "{{$.abc}}, {{$.lastName}}! {{$.firstName}}",
+				onError: "throwError",
+			};
+			expect(() => JsonPathUtils.parse(pattern, data)).toThrow();
+
+			const patternForArray: TStringPattern = { stringPattern: "{{$.emptyArray}}", onError: "throwError", };
+			expect(() => JsonPathUtils.parse(patternForArray, data)).toThrow();
+		});
+
+		it("should use fallback pattern if some results are missing, onError=fallback and there is a fallback pattern", () => {
+			const pattern: TStringPattern = {
+				stringPattern: "{{$.abc}}, {{$.lastName}}! {{$.firstName}}",
+				onError: "fallback",
+				fallback: "{{$.address.city}}"
+			};
+			expect(JsonPathUtils.parse(pattern, data)).toEqual("Nara");
+
+			const patternForArray: TStringPattern = {
+				stringPattern: "{{$.emptyArray}}",
+				onError: "fallback",
+				fallback: "{{$.address.city}}"
+			};
+			expect(JsonPathUtils.parse(patternForArray, data)).toEqual("Nara");
+		});
+
+		it("should not use fallback pattern if some results are missing, onError=fallback but there is no fallback pattern", () => {
+			const pattern: TStringPattern = {
+				stringPattern: "{{$.abc}}, {{$.lastName}}! {{$.firstName}}",
+				onError: "fallback",
+				fallback: null
+			};
+			expect(JsonPathUtils.parse(pattern, data)).toEqual(", doe! John");
 		});
 	});
 
@@ -631,9 +667,9 @@ describe("JsonPathUtils", () => {
 
 			const expected = {
 				search: {
-						resourceType: "123",
-						resourceSubType: "234",
-					},
+					resourceType: "123",
+					resourceSubType: "234",
+				},
 				dateTime: [
 					"2023-03-30T09:00+08:00",
 					"2023-03-30T10:00+08:00",
@@ -669,12 +705,12 @@ describe("JsonPathUtils", () => {
 
 			const expected = {
 				search:
-					{
-						resourceType: "123",
-						resourceSubType: "234",
-						name: "myResource",
-						quantity: 8,
-					},
+				{
+					resourceType: "123",
+					resourceSubType: "234",
+					name: "myResource",
+					quantity: 8,
+				},
 				dateTime: [
 					"2023-03-30T09:00+08:00",
 					"2023-03-30T10:00+08:00",
