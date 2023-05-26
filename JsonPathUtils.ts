@@ -29,6 +29,8 @@ export interface TArrayMapPattern {
 
 export interface TConditionalPattern {
 	conditionalPattern: string;
+	conditionalCheck?: "boolean" | "equal";
+	conditionalEqualValue?: any;
 	trueValue: TPattern;
 	falseValue?: TPattern;
 }
@@ -153,13 +155,24 @@ export namespace JsonPathUtils {
 		});
 	};
 
-	const getResultFromConditionalPattern = (pattern: TConditionalPattern,
-		data: TData): TReturn<TConditionalPattern> => {
-		const cond = getResultFromObjectPattern({
-			objectPattern: pattern.conditionalPattern,
-			wrap: "unwrap",
-			parseString: "boolean",
-		}, data);
+	const getResultFromConditionalPattern = (
+		pattern: TConditionalPattern,
+		data: TData,
+	): TReturn<TConditionalPattern> => {
+		let cond: boolean;
+		if (pattern.conditionalCheck === "equal") {
+			const value = getResultFromObjectPattern({
+				objectPattern: pattern.conditionalPattern,
+				wrap: "unwrap",
+			}, data);
+			cond = value === pattern.conditionalEqualValue;
+		} else { // "boolean" (default)
+			cond = !!getResultFromObjectPattern({
+				objectPattern: pattern.conditionalPattern,
+				wrap: "unwrap",
+				parseString: "boolean",
+			}, data);
+		}
 		if (cond) {
 			return replacePattern(pattern.trueValue, data);
 		}
@@ -181,9 +194,16 @@ export namespace JsonPathUtils {
 
 	/**
 	 * This function substitutes the patterns in the given template with the actual values.
-	 * NOTE: The template patterns should contain JsonPath syntax that points to the actual values to replace with.
+	 * The template should be a pattern, or an object that can contain patterns as values or inside arrays. This function will traverse all keys and arrays recursively and replace all patterns. Any value that is not a pattern is kept as-is in the result.
+	 *
+	 * Patterns that are supported:
+	 * - stringPattern -- string interpolation. Can contain one or more JsonPaths.
+	 * - objectPattern -- more fine control. Runs one JsonPath and can then adjust wrapping and convert the values.
+	 * - conditionalPattern -- run a JsonPath and depending on its result return a new value.
+	 * - arrayMapPattern -- reads an array specified by a JsonPath and converts each element using a mapping template.
+	 *
 	 * @param template The template of any arbitrary shape with the patterns to be replaced with.
-	 * @param values The object containing the actual values.
+	 * @param values The object containing the values for the placeholders.
 	 * @returns The template with substituted values.
 	 */
 	export const replacePattern = (template: unknown, values: TData) => {

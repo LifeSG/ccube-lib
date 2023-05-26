@@ -1,4 +1,4 @@
-import { JsonPathUtils, TPattern, TStringPattern } from "../JsonPathUtils";
+import { JsonPathUtils, TConditionalPattern, TPattern, TStringPattern } from "../JsonPathUtils";
 
 // tslint:disable: no-big-function
 describe("JsonPathUtils", () => {
@@ -862,6 +862,53 @@ describe("JsonPathUtils", () => {
 			};
 			const expected = {
 				p: "doe",
+			};
+			expect(JsonPathUtils.replacePattern(template, data)).toEqual(expected);
+		});
+
+		it('should check for equality if conditionalCheck="equal" and return trueValue', () => {
+			const template = {
+				p: {
+					conditionalPattern: "$.firstName",
+					conditionalCheck: "equal",
+					conditionalEqualValue: "John",
+					trueValue: "it's equal",
+					falseValue: "it's not equal",
+				} as TConditionalPattern,
+			};
+			const expected = {
+				p: "it's equal",
+			};
+			expect(JsonPathUtils.replacePattern(template, data)).toEqual(expected);
+		});
+
+		it('should check for equality if conditionalCheck="equal" and return falseValue', () => {
+			const template = {
+				p: {
+					conditionalPattern: "$.firstName",
+					conditionalCheck: "equal",
+					conditionalEqualValue: "Foo",
+					trueValue: "it's equal",
+					falseValue: "it's not equal",
+				} as TConditionalPattern,
+			};
+			const expected = {
+				p: "it's not equal",
+			};
+			expect(JsonPathUtils.replacePattern(template, data)).toEqual(expected);
+		});
+
+		it('should check for missing values with conditionalCheck="equal" and conditionalEqualValue=undefined (default)', () => {
+			const template = {
+				p: {
+					conditionalPattern: "$.keyDoesntExist",
+					conditionalCheck: "equal",
+					trueValue: "it doesn't not exist",
+					falseValue: "it exist",
+				} as TConditionalPattern,
+			};
+			const expected = {
+				p: "it doesn't not exist",
 			};
 			expect(JsonPathUtils.replacePattern(template, data)).toEqual(expected);
 		});
