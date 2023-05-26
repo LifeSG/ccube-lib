@@ -53,6 +53,7 @@ export interface TObjectPattern {
 	 */
 	wrap?: boolean | "wrap" | "unwrap";
 	// If wrap is not `true`, this can be used to further process the result, if it is a string, as a number, array, boolean or formatted datetime
+	// tslint:disable: max-union-size
 	parseString?: "number" | "array" | "boolean" | "datetime";
 	// if `parseString` is `datetime`, specify what datetime format the string should be formatted as. By default, the datetime is formatted in an ISO 8601 format.
 	datetimeFormat?: string;
