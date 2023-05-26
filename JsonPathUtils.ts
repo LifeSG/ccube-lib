@@ -9,24 +9,73 @@ export interface TPatternWithError {
 }
 export interface TPatternWithFallback {
 	onError: "fallback";
+	// used instead if error occurred.
 	fallback: string;
 }
 export type TPatternWithErrorHandling<T> = TPatternWithError & T | TPatternWithFallback & T;
 
-export type TStringPattern = TPatternWithErrorHandling<{ stringPattern: string; }>;
+/**
+ * Pattern to perform string interpolation. Placeholders are JsonPaths surrounded by a double-curly bracket (mustache).
+ *
+ * Example: `{stringPattern: "{{$.lastName}}, {{$.firstName}}"}`
+ *
+ * By default, JsonPaths that return nothing are ignored. This can be customized using `onError` and `fallback`.
+ */
+export type TStringPattern = TPatternWithErrorHandling<{
+	// a string with placeholders surrounded by a double-curly bracket (mustache). Each placeholder is a JsonPath expression.
+	stringPattern: string;
+}>;
 
+/**
+ * Placeholder that evaluates one JsonPath expression. The JsonPath wrapping behaviour can be controlled, and further
+ * parsing of the result into common types is possible.
+ *
+ * Example: `{ objectPattern: "$.boolString", wrap: false}`
+ *
+ * Wrap:
+ * - Wrap=true is the default JsonPath behaviour, that wraps everything into an array.
+ * - Wrap=false instructs JsonPath to avoid wrapping if possible. Depending on the result of the JsonPath expression, this will return a single element or array.
+ * - Wrap="unwrap" will additionally try to unwrap arrays that only contain a single element.
+ * - Wrap="wrap" will ensure that the returned value is always an array, even if JsonPath might return it as a single value.
+ *
+ * Parsing:
+ * If wrap is anything except `true`, additional parsing of the result can be enabled with `parseString` if desired.
+ */
 export interface TObjectPattern {
+	// a single JsonPath expression
 	objectPattern: string;
+	/**
+	 * Wrap:
+	 * - Wrap=true is the default JsonPath behaviour, that wraps everything into an array.
+	 * - Wrap=false instructs JsonPath to avoid wrapping if possible. Depending on the result of the JsonPath expression, this will return a single element or array.
+	 * - Wrap="unwrap" will additionally try to unwrap arrays that only contain a single element.
+	 * - Wrap="wrap" will ensure that the returned value is always an array, even if JsonPath might return it as a single value.
+	 */
 	wrap?: boolean | "wrap" | "unwrap";
-	parseString?: string;
+	// If wrap is not `true`, this can be used to further process the result, if it is a string, as a number, array, boolean or formatted datetime
+	parseString?: "number" | "array" | "boolean" | "datetime";
+	// if `parseString` is `datetime`, specify what datetime format the string should be formatted as. By default, the datetime is formatted in an ISO 8601 format.
 	datetimeFormat?: string;
 }
 
+/**
+ * Takes an array selected by a JsonPath in `arrayMapPattern` and converts each array element using the template in `itemMapping`.
+ * Within `itemMapping`, the item and the index of the current element can be accessed as `$.mapItem` and `$.mapIndex`.
+ */
 export interface TArrayMapPattern {
+	// JsonPath expression specifying the array to be mapped
 	arrayMapPattern: string;
+	// template with placeholder patterns that will be used to map each array item. The current item and index can be accessed as `$.mapItem` and `$.mapIndex`.
 	itemMapping: TPattern;
 }
 
+/**
+ * Evaluates a JsonPath expression in `conditionalPattern`. Depending on the result, it will either return `trueValue` or `falseValue`. Both can be primitive values, or patterns themselves.
+ *
+ * By default, the result of `conditionalPattern` is checked for truthiness. See `falseyList`.
+ *
+ * If `conditionalCheck='equal'`, the result is instead checked for equality to `conditionalEqualValue`.
+ */
 export interface TConditionalPattern {
 	conditionalPattern: string;
 	conditionalCheck?: "boolean" | "equal";
@@ -35,6 +84,9 @@ export interface TConditionalPattern {
 	falseValue?: TPattern;
 }
 
+/**
+ * A pattern is a primitive value, or one of multiple special placeholder patterns. The placeholder patterns are evaluated into an actual value by the functions `replacePattern` or `parse`.
+ */
 export type TPattern =
 	string | number | boolean |
 	TStringPattern |
@@ -179,6 +231,11 @@ export namespace JsonPathUtils {
 		return replacePattern(pattern.falseValue, data);
 	};
 
+	/**
+	 * Parses a single placeholder pattern. To replace all placeholders inside an object template, use `replacePattern` instead.
+	 * @param pattern A placeholder pattern.
+	 * @param data Contextual data that is used in the placeholder.
+	 */
 	export const parse = <T extends TPattern>(pattern: T, data: TData): TReturn<T | TPattern> => {
 		if (isStringPattern(pattern)) {
 			return getResultFromStringPattern(pattern, data);
