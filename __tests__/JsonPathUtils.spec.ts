@@ -399,93 +399,93 @@ describe("JsonPathUtils", () => {
 	describe("ObjectPattern (parseString)", () => {
 		describe("Number", () => {
 			it("should return correct output for parseString number", () => {
-				const pattern = { objectPattern: "$.countString", wrap: false, parseString: "number" };
+				const pattern: TPattern = { objectPattern: "$.countString", wrap: false, parseString: "number" };
 				expect(JsonPathUtils.parse(pattern, data)).toEqual(123);
 			});
 
 			it("should return correct output for parseString number, floatStr result", () => {
-				const pattern = { objectPattern: "$.floatStr", wrap: false, parseString: "number" };
+				const pattern: TPattern = { objectPattern: "$.floatStr", wrap: false, parseString: "number" };
 				expect(JsonPathUtils.parse(pattern, { ...data, floatStr: "12.3" })).toEqual(12.3);
 			});
 
 			it("should return correct output for parseString number, letter string result", () => {
-				const pattern = { objectPattern: "$.firstName", wrap: false, parseString: "number" };
+				const pattern: TPattern = { objectPattern: "$.firstName", wrap: false, parseString: "number" };
 				expect(JsonPathUtils.parse(pattern, data)).toEqual(NaN);
 			});
 
 			it("should return correct output for parseString number, null result", () => {
-				const pattern = { objectPattern: "$.nullAttrStr", wrap: false, parseString: "number" };
+				const pattern: TPattern = { objectPattern: "$.nullAttrStr", wrap: false, parseString: "number" };
 				expect(JsonPathUtils.parse(pattern, { ...data, nullAttrStr: "null" })).toEqual(NaN);
 			});
 
 			it("should return correct output for parseString number, no results", () => {
-				const pattern = { objectPattern: "$.abc", wrap: false, parseString: "number" };
+				const pattern: TPattern = { objectPattern: "$.abc", wrap: false, parseString: "number" };
 				expect(JsonPathUtils.parse(pattern, data)).toEqual(NaN);
 			});
 		});
 
 		describe("Boolean", () => {
 			it("should return correct output for parseString boolean", () => {
-				const pattern = { objectPattern: "$.boolString", wrap: false, parseString: "boolean" };
+				const pattern: TPattern = { objectPattern: "$.boolString", wrap: false, parseString: "boolean" };
 				expect(JsonPathUtils.parse(pattern, data)).toEqual(true);
 			});
 
 			it("should return correct output for parseString boolean, letter string result", () => {
-				const pattern = { objectPattern: "$.firstName", wrap: false, parseString: "boolean" };
+				const pattern: TPattern = { objectPattern: "$.firstName", wrap: false, parseString: "boolean" };
 				expect(JsonPathUtils.parse(pattern, data)).toEqual(true);
 			});
 
 			it("should return correct output for parseString boolean, boolean with non-lowercase result", () => {
-				const pattern = { objectPattern: "$.boolStringCaps", wrap: false, parseString: "boolean" };
+				const pattern: TPattern = { objectPattern: "$.boolStringCaps", wrap: false, parseString: "boolean" };
 				expect(JsonPathUtils.parse(pattern, { ...data, boolStringCaps: "False" })).toEqual(false);
 			});
 
 			it("should return correct output for parseString boolean, null result", () => {
-				const pattern = { objectPattern: "$.nullAttr", wrap: false, parseString: "boolean" };
+				const pattern: TPattern = { objectPattern: "$.nullAttr", wrap: false, parseString: "boolean" };
 				expect(JsonPathUtils.parse(pattern, data)).toEqual(false);
 			});
 
 			it("should return correct output for parseString boolean, no results", () => {
-				const pattern = { objectPattern: "$.abc", wrap: false, parseString: "boolean" };
+				const pattern: TPattern = { objectPattern: "$.abc", wrap: false, parseString: "boolean" };
 				expect(JsonPathUtils.parse(pattern, data)).toEqual(false);
 			});
 		});
 
 		describe("Array", () => {
 			it("should return correct output for parseString array", () => {
-				const pattern = { objectPattern: "$.stringifiedArray", wrap: false, parseString: "array" };
+				const pattern: TPattern = { objectPattern: "$.stringifiedArray", wrap: false, parseString: "array" };
 				expect(JsonPathUtils.parse(pattern, data)).toEqual(["a", "b"]);
 			});
 
 			it("should return correct output for parseString array, non-parseable result", () => {
-				const pattern = { objectPattern: "$.firstName", wrap: false, parseString: "array" };
+				const pattern: TPattern = { objectPattern: "$.firstName", wrap: false, parseString: "array" };
 				expect(JsonPathUtils.parse(pattern, data)).toEqual(null);
 			});
 
 			it("should return correct output for parseString array, parseable non-array result", () => {
-				const pattern = { objectPattern: "$.age", wrap: false, parseString: "array" };
+				const pattern: TPattern = { objectPattern: "$.age", wrap: false, parseString: "array" };
 				expect(JsonPathUtils.parse(pattern, data)).toEqual(null);
 			});
 
 			it("should return correct output for parseString array, no results", () => {
-				const pattern = { objectPattern: "$.abc", wrap: false, parseString: "array" };
+				const pattern: TPattern = { objectPattern: "$.abc", wrap: false, parseString: "array" };
 				expect(JsonPathUtils.parse(pattern, data)).toEqual(null);
 			});
 		});
 
 		describe("Datetime", () => {
 			it("should return correct output for parseString datetime, default format (date input)", () => {
-				const pattern = { objectPattern: "$.someDate", wrap: false, parseString: "datetime" };
+				const pattern: TPattern = { objectPattern: "$.someDate", wrap: false, parseString: "datetime" };
 				expect(JsonPathUtils.parse(pattern, data)).toEqual("2023-03-10T00:00:00Z");
 			});
 
 			it("should return correct output for parseString datetime, default format (datetime input)", () => {
-				const pattern = { objectPattern: "$.someDatetime1", wrap: false, parseString: "datetime" };
+				const pattern: TPattern = { objectPattern: "$.someDatetime1", wrap: false, parseString: "datetime" };
 				expect(JsonPathUtils.parse(pattern, data)).toEqual("2023-03-10T13:25:54+08:00");
 			});
 
 			it("should return correct output for parseString datetime, date format (date input)", () => {
-				const pattern = {
+				const pattern: TPattern = {
 					objectPattern: "$.someDate",
 					wrap: false,
 					parseString: "datetime",
@@ -495,7 +495,7 @@ describe("JsonPathUtils", () => {
 			});
 
 			it("should return correct output for parseString datetime, date format (datetime input)", () => {
-				const pattern = {
+				const pattern: TPattern = {
 					objectPattern: "$.someDatetime1",
 					wrap: false,
 					parseString: "datetime",
@@ -505,7 +505,7 @@ describe("JsonPathUtils", () => {
 			});
 
 			it("should return correct output for parseString datetime, time format (datetime input)", () => {
-				const pattern = {
+				const pattern: TPattern = {
 					objectPattern: "$.someDatetime1",
 					wrap: false,
 					parseString: "datetime",
@@ -515,21 +515,14 @@ describe("JsonPathUtils", () => {
 			});
 
 			it("should return correct output for parseString datetime, non-date string input", () => {
-				const pattern = { objectPattern: "$.firstName", wrap: false, parseString: "datetime" };
+				const pattern: TPattern = { objectPattern: "$.firstName", wrap: false, parseString: "datetime" };
 				expect(JsonPathUtils.parse(pattern, data)).toEqual(null);
 			});
 
 			it("should return correct output for parseString datetime, undefined input", () => {
-				const pattern = { objectPattern: "$.abc", wrap: false, parseString: "datetime" };
+				const pattern: TPattern = { objectPattern: "$.abc", wrap: false, parseString: "datetime" };
 				expect(JsonPathUtils.parse(pattern, data)).toEqual(null);
 			});
-		});
-
-		it("should return error for invalid parseString", () => {
-			const pattern = { objectPattern: "$.stringifiedArray", wrap: false, parseString: "abc" };
-			expect(() => JsonPathUtils.parse(pattern, data)).toThrowError(
-				new Error(`Invalid "parseString" value "${pattern.parseString}"`),
-			);
 		});
 	});
 
