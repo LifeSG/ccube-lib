@@ -86,6 +86,13 @@ export interface TConditionalPattern {
 }
 
 /**
+ * Generic objects with TPattern properties
+ */
+export interface TNestedPattern {
+	[key: string]: TPattern;
+}
+
+/**
  * A pattern is a primitive value, or one of multiple special placeholder patterns. The placeholder patterns are evaluated into an actual value by the functions `replacePattern` or `parse`.
  */
 export type TPattern =
@@ -93,7 +100,8 @@ export type TPattern =
 	TStringPattern |
 	TObjectPattern |
 	TArrayMapPattern |
-	TConditionalPattern;
+	TConditionalPattern |
+	TNestedPattern;
 
 export type TReturn<T extends TPattern> = T extends TObjectPattern
 	? T extends { parseString: "boolean" } ? boolean
