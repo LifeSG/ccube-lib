@@ -89,7 +89,7 @@ export interface TConditionalPattern {
  * Generic objects with TPattern properties
  */
 export interface TNestedPattern {
-	[key: string]: TPattern;
+	[key: string]: TPattern | TPattern[];
 }
 
 /**
