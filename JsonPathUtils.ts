@@ -71,6 +71,21 @@ export interface TArrayMapPattern {
 }
 
 /**
+ * Takes an array, where each element may be a Pattern.
+ * If the element is a Pattern, the pattern is replaced. The pattern may produce an array itself.
+ * In the end the overall array is flattened.
+ * Use this to combine arrays from multiple sources.
+ */
+export interface TArrayMergePattern {
+	// array of that can contain Patterns
+	arrayMergePattern: (TPattern | any)[];
+	// flatten the array elements further in case of nested arrays. Default is `1`.
+	flattenDepth?: number;
+	// Remove duplicate items after merging. Default is `false`.
+	removeDuplicates?: boolean;
+}
+
+/**
  * Evaluates a JsonPath expression in `conditionalPattern`. Depending on the result, it will either return `trueValue` or `falseValue`. Both can be primitive values, or patterns themselves.
  *
  * By default, the result of `conditionalPattern` is checked for truthiness. See `falseyList`.
@@ -100,6 +115,7 @@ export type TPattern =
 	TStringPattern |
 	TObjectPattern |
 	TArrayMapPattern |
+	TArrayMergePattern |
 	TConditionalPattern |
 	TNestedPattern;
 
@@ -111,6 +127,7 @@ export type TReturn<T extends TPattern> = T extends TObjectPattern
 	: object | any[]
 	: T extends TStringPattern ? string
 	: T extends TArrayMapPattern ? any | any[]
+	: T extends TArrayMergePattern ? any[]
 	: T extends TConditionalPattern ? TData
 	: T;
 
@@ -120,11 +137,15 @@ export namespace JsonPathUtils {
 		"stringPattern" in x ||
 		"objectPattern" in x ||
 		"arrayMapPattern" in x ||
+		"arrayMergePattern" in x ||
 		"conditionalPattern" in x);
+
 	const isStringPattern = (x: any): x is TStringPattern => (x as TStringPattern).stringPattern !== undefined;
 	const isObjectPattern = (x: any): x is TObjectPattern => (x as TObjectPattern).objectPattern !== undefined;
 	const isArrayMapPattern = (x: any): x is TArrayMapPattern => (x as TArrayMapPattern).arrayMapPattern !== undefined;
+	const isArrayMergePattern = (x: any): x is TArrayMergePattern => (x as TArrayMergePattern).arrayMergePattern !== undefined;
 	const isConditionalPattern = (x: any): x is TConditionalPattern => (x as TConditionalPattern).conditionalPattern !== undefined;
+
 	const falseyList = ["false", "0", "-0", "0n", "", "null", "undefined", "nan", "[]"];
 
 	const getResultFromStringPattern = (pattern: TStringPattern, data: TData): TReturn<TStringPattern> => {
@@ -216,6 +237,18 @@ export namespace JsonPathUtils {
 		});
 	};
 
+	const getResultFromArrayMergePattern = (pattern: TArrayMergePattern, data: TData): TReturn<TArrayMergePattern> => {
+		let array = pattern.arrayMergePattern.map(p => {
+			if (isPattern(p)) return parse(p, data);
+			return p;
+		});
+		array = array.flat(pattern.flattenDepth ?? 1);
+		if (pattern.removeDuplicates) {
+			array = _.uniq(array);
+		}
+		return array;
+	};
+
 	const getResultFromConditionalPattern = (
 		pattern: TConditionalPattern,
 		data: TData,
@@ -252,6 +285,8 @@ export namespace JsonPathUtils {
 			return getResultFromObjectPattern(pattern, data);
 		} else if (isArrayMapPattern(pattern)) {
 			return getResultFromArrayMapPattern(pattern, data);
+		} else if (isArrayMergePattern(pattern)) {
+			return getResultFromArrayMergePattern(pattern, data);
 		} else if (isConditionalPattern(pattern)) {
 			return getResultFromConditionalPattern(pattern, data);
 		}
