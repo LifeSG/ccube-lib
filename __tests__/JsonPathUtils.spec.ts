@@ -104,31 +104,33 @@ describe("JsonPathUtils", () => {
 			};
 			expect(() => JsonPathUtils.parse(pattern, data)).toThrow();
 
-			const patternForArray: TStringPattern = { stringPattern: "{{$.emptyArray}}", onError: "throwError", };
+			const patternForArray: TStringPattern = { stringPattern: "{{$.emptyArray}}", onError: "throwError" };
 			expect(() => JsonPathUtils.parse(patternForArray, data)).toThrow();
 		});
 
-		it("should use fallback pattern if some results are missing, onError=fallback and there is a fallback pattern", () => {
+		it("should use fallback pattern if some results are missing, " +
+			"onError=fallback and there is a fallback pattern", () => {
 			const pattern: TStringPattern = {
 				stringPattern: "{{$.abc}}, {{$.lastName}}! {{$.firstName}}",
 				onError: "fallback",
-				fallback: "{{$.address.city}}"
+				fallback: "{{$.address.city}}",
 			};
 			expect(JsonPathUtils.parse(pattern, data)).toEqual("Nara");
 
 			const patternForArray: TStringPattern = {
 				stringPattern: "{{$.emptyArray}}",
 				onError: "fallback",
-				fallback: "{{$.address.city}}"
+				fallback: "{{$.address.city}}",
 			};
 			expect(JsonPathUtils.parse(patternForArray, data)).toEqual("Nara");
 		});
 
-		it("should not use fallback pattern if some results are missing, onError=fallback but there is no fallback pattern", () => {
+		it("should not use fallback pattern if some results are missing, " +
+			"onError=fallback but there is no fallback pattern", () => {
 			const pattern: TStringPattern = {
 				stringPattern: "{{$.abc}}, {{$.lastName}}! {{$.firstName}}",
 				onError: "fallback",
-				fallback: null
+				fallback: null,
 			};
 			expect(JsonPathUtils.parse(pattern, data)).toEqual(", doe! John");
 		});
@@ -249,17 +251,20 @@ describe("JsonPathUtils", () => {
 				expect(JsonPathUtils.parse(pattern, data)).toEqual(null);
 			});
 
-			it("should return correct output for object pattern with wrap:false, with actual empty array result", () => {
+			it("should return correct output for object pattern with wrap:false, " +
+				"with actual empty array result", () => {
 				const pattern = { objectPattern: "$.emptyArray", wrap: false };
 				expect(JsonPathUtils.parse(pattern, data)).toEqual([]);
 			});
 
-			it("should return correct output for object pattern with wrap:false, with actual single-element array result", () => {
+			it("should return correct output for object pattern with wrap:false, " +
+				"with actual single-element array result", () => {
 				const pattern = { objectPattern: "$.singleElemArray", wrap: false };
 				expect(JsonPathUtils.parse(pattern, data)).toEqual(["234"]);
 			});
 
-			it("should return correct output for object pattern with wrap:false, with actual multi-element array result", () => {
+			it("should return correct output for object pattern with wrap:false, " +
+				"with actual multi-element array result", () => {
 				const pattern = { objectPattern: "$.multiElemArray", wrap: false };
 				expect(JsonPathUtils.parse(pattern, data)).toEqual(["234", "987"]);
 			});
@@ -313,17 +318,20 @@ describe("JsonPathUtils", () => {
 				expect(JsonPathUtils.parse(pattern, data)).toEqual(null);
 			});
 
-			it("should return correct output for object pattern with wrap:'unwrap', with actual empty array result", () => {
+			it("should return correct output for object pattern with wrap:'unwrap', " +
+				"with actual empty array result", () => {
 				const pattern: TPattern = { objectPattern: "$.emptyArray", wrap: "unwrap" };
 				expect(JsonPathUtils.parse(pattern, data)).toEqual([]);
 			});
 
-			it("should return correct output for object pattern with wrap:'unwrap', with actual single-element array result", () => {
+			it("should return correct output for object pattern with wrap:'unwrap', " +
+				"with actual single-element array result", () => {
 				const pattern: TPattern = { objectPattern: "$.singleElemArray", wrap: "unwrap" };
 				expect(JsonPathUtils.parse(pattern, data)).toEqual("234");
 			});
 
-			it("should return correct output for object pattern with wrap:'unwrap', with actual multi-element array result", () => {
+			it("should return correct output for object pattern with wrap:'unwrap', " +
+				"with actual multi-element array result", () => {
 				const pattern: TPattern = { objectPattern: "$.multiElemArray", wrap: "unwrap" };
 				expect(JsonPathUtils.parse(pattern, data)).toEqual(["234", "987"]);
 			});
@@ -379,17 +387,20 @@ describe("JsonPathUtils", () => {
 				expect(JsonPathUtils.parse(pattern, data)).toEqual([null]);
 			});
 
-			it("should return correct output for object pattern with wrap:'wrap', with actual empty array result", () => {
+			it("should return correct output for object pattern with wrap:'wrap', " +
+				"with actual empty array result", () => {
 				const pattern: TPattern = { objectPattern: "$.emptyArray", wrap: "wrap" };
 				expect(JsonPathUtils.parse(pattern, data)).toEqual([]);
 			});
 
-			it("should return correct output for object pattern with wrap:'wrap', with actual single-element array result", () => {
+			it("should return correct output for object pattern with wrap:'wrap', " +
+				"with actual single-element array result", () => {
 				const pattern: TPattern = { objectPattern: "$.singleElemArray", wrap: "wrap" };
 				expect(JsonPathUtils.parse(pattern, data)).toEqual(["234"]);
 			});
 
-			it("should return correct output for object pattern with wrap:'wrap', with actual multi-element array result", () => {
+			it("should return correct output for object pattern with wrap:'wrap', " +
+				"with actual multi-element array result", () => {
 				const pattern: TPattern = { objectPattern: "$.multiElemArray", wrap: "wrap" };
 				expect(JsonPathUtils.parse(pattern, data)).toEqual(["234", "987"]);
 			});
@@ -630,7 +641,8 @@ describe("JsonPathUtils", () => {
 			expect(JsonPathUtils.replacePattern(template, ctx)).toEqual(expected);
 		});
 
-		it("should iterate through and replace array object if it contains direct stringPattern or objectPattern keys", () => {
+		it("should iterate through and replace array object if it contains direct " +
+			"stringPattern or objectPattern keys", () => {
 			const template = {
 				search: {
 					resourceType: { stringPattern: "{{$.data.resourceType}}" },
@@ -697,8 +709,7 @@ describe("JsonPathUtils", () => {
 			};
 
 			const expected = {
-				search:
-				{
+				search: {
 					resourceType: "123",
 					resourceSubType: "234",
 					name: "myResource",
@@ -891,19 +902,213 @@ describe("JsonPathUtils", () => {
 			expect(JsonPathUtils.replacePattern(template, data)).toEqual(expected);
 		});
 
-		it('should check for missing values with conditionalCheck="equal" and conditionalEqualValue=undefined (default)', () => {
-			const template = {
-				p: {
-					conditionalPattern: "$.keyDoesntExist",
-					conditionalCheck: "equal",
-					trueValue: "it doesn't not exist",
-					falseValue: "it exist",
-				} as TConditionalPattern,
+		it('should check for missing values with conditionalCheck="equal" and conditionalEqualValue=undefined (default)',
+			() => {
+				const template = {
+					p: {
+						conditionalPattern: "$.keyDoesntExist",
+						conditionalCheck: "equal",
+						trueValue: "it doesn't not exist",
+						falseValue: "it exist",
+					} as TConditionalPattern,
+				};
+				const expected = {
+					p: "it doesn't not exist",
+				};
+				expect(JsonPathUtils.replacePattern(template, data)).toEqual(expected);
+			});
+	});
+
+
+	describe('Complex RBS examples', () => {
+		const rbsData = {
+			// this is IResource (excerpt)
+			"name": "Lychee Room",
+			"categories": [
+				{
+					"id": "1",
+					"name": "Resource Usage",
+					"type": "RESOURCE_USAGE",
+					"labels": [
+						{ "id": "u1", "name": "Meeting" },
+						{ "id": "u2", "name": "Workshop" },
+					],
+				},
+				{
+					"id": "2",
+					"name": "Built-in Amenities",
+					"type": "BUILT_IN_AMENITIES",
+					"labels": [
+						{ "id": "a1", "name": "TV" },
+						{ "id": "a2", "name": "Microphone" },
+					],
+				},
+			],
+			"resourceLayouts": [
+				{
+					"id": "l1",
+					"name": "Classroom",
+					"description": "All facing forwards",
+					"imageUrls": "https://image.com/1",
+					"maxCapacity": 10,
+					"setupTime": 20,
+					"teardownTime": 20,
+				},
+				{
+					"id": "l2",
+					"name": "Meeting",
+					"description": "All facing the center",
+					"imageUrls": "https://image.com/2",
+					"maxCapacity": 14,
+					"setupTime": 10,
+					"teardownTime": 10,
+				},
+			],
+		};
+
+		describe('Categories', () => {
+			const template: Record<string, TPattern | TPattern[]> = {
+				// this is the resource response mapping (excerpt)
+				additionalDetails: [
+					{
+						conditionalPattern: '$.categories[?(@.type==="RESOURCE_USAGE")].labels',
+						trueValue: {
+							key: "Booking usage",
+							title: "Booking usage",
+							items: {
+								objectPattern: '$.categories[?(@.type==="RESOURCE_USAGE")].labels.[name]',
+							},
+						},
+					},
+				],
 			};
-			const expected = {
-				p: "it doesn't not exist",
+
+			it('should map usage (also applies to "built-in amenities" and "additional amenities")', () => {
+				const expected = {
+					additionalDetails: [
+						{
+							key: 'Booking usage',
+							title: 'Booking usage',
+							items: ['Meeting', 'Workshop'],
+						},
+					],
+				};
+
+				expect(JsonPathUtils.replacePattern(template, rbsData)).toEqual(expected);
+			});
+
+			it('should map a missing or empty category to `undefined`', () => {
+				// missing categories
+				expect(JsonPathUtils.replacePattern(template, {})).toEqual({ additionalDetails: [undefined] });
+
+				// empty (no labels)
+				expect(JsonPathUtils.replacePattern(template,
+					{ "categories": [] })).toEqual({ additionalDetails: [undefined] });
+			});
+		});
+
+		describe('Layouts (list)', () => {
+			const template: Record<string, TPattern | TPattern[]> = {
+				additionalDetails: [
+					{
+						conditionalPattern: '$.resourceLayouts.*',
+						trueValue: {
+							key: "Available layouts",
+							title: "Available layouts",
+							description: "Additional time may be added when checking for availability due to setup and teardown of layout.",
+							items: {
+								arrayMapPattern: "$.resourceLayouts.*",
+								itemMapping: {
+									stringPattern: "{{$.mapItem.name}} ({{$.mapItem.maxCapacity}} pax)",
+								},
+							},
+						},
+					},
+				],
 			};
-			expect(JsonPathUtils.replacePattern(template, data)).toEqual(expected);
+
+			it('should map layouts', () => { // (with string concats)
+				const expected = {
+					additionalDetails: [
+						{
+							key: 'Available layouts',
+							title: 'Available layouts',
+							description: 'Additional time may be added when checking for availability due to setup and teardown of layout.',
+							items: ['Classroom (10 pax)', 'Meeting (14 pax)'],
+						},
+					],
+				};
+
+				expect(JsonPathUtils.replacePattern(template, rbsData)).toEqual(expected);
+			});
+
+			it('should map layouts to `undefined` if no layouts', () => {
+				// missing layouts
+				expect(JsonPathUtils.replacePattern(template, {})).toEqual({ additionalDetails: [undefined] });
+
+				// empty (no layouts)
+				expect(JsonPathUtils.replacePattern(template,
+					{ "resourceLayouts": [] })).toEqual({ additionalDetails: [undefined] });
+			});
+		});
+
+		describe('Layout modal', () => {
+			const template: Record<string, TPattern | TPattern[]> = {
+				additionalDetails: [
+					{
+						conditionalPattern: '$.resourceLayouts.*',
+						trueValue: {
+							key: "View layout details",
+							title: "View layout details",
+							items: {
+								arrayMapPattern: "$.resourceLayouts.*",
+								itemMapping: {
+									label: { stringPattern: "{{$.mapItem.name}} ({{$.mapItem.maxCapacity}} pax)" },
+									description: [
+										{
+											label: "Setup time",
+											value: { stringPattern: "{{$.mapItem.setupTime}} minutes" },
+										},
+										{
+											label: "Teardown time",
+											value: { stringPattern: "{{$.mapItem.teardownTime}} minutes" },
+										},
+									],
+								},
+							},
+						},
+					},
+				],
+			};
+
+			it('should map image modal', () => {
+				const expected = {
+					additionalDetails: [
+						{
+							key: 'View layout details',
+							title: 'View layout details',
+							items: [
+								{
+									label: 'Classroom (10 pax)',
+									description: [
+										{ label: "Setup time", value: "20 minutes" },
+										{ label: "Teardown time", value: "20 minutes" },
+									],
+								},
+								{
+									label: 'Meeting (14 pax)',
+									description: [
+										{ label: "Setup time", value: "10 minutes" },
+										{ label: "Teardown time", value: "10 minutes" },
+									],
+								},
+							],
+						},
+					],
+				};
+
+				expect(JsonPathUtils.replacePattern(template, rbsData)).toEqual(expected);
+			});
 		});
 	});
 });
