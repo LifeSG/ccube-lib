@@ -844,6 +844,41 @@ describe("JsonPathUtils", () => {
 		});
 	});
 
+	describe('ObjectMergePattern', () => {
+		const addressData = {
+			address1: {
+				streetAddress: "naist street",
+				postalCode: "630-0192",
+			},
+			address2: {
+				streetAddress: "bob street",
+				city: "Nara",
+			},
+		};
+		const template = {
+			mapped: {
+				objectMergePattern: [
+					{ objectPattern: "$.address1", wrap: false },
+					{ objectPattern: "$.address2", wrap: false },
+					{ unrelated: "object" },
+				],
+			},
+		};
+
+		it('should merge the objects', () => {
+			const expected = {
+				mapped: {
+					streetAddress: "bob street",
+					postalCode: "630-0192",
+					city: "Nara",
+					unrelated: "object",
+				},
+			};
+
+			expect(JsonPathUtils.replacePattern(template, addressData)).toEqual(expected);
+		});
+	});
+
 	describe('ConditionalPattern', () => {
 		it('should return the true primitive value', () => {
 			const template = {
