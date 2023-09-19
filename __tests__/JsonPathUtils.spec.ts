@@ -110,29 +110,97 @@ describe("JsonPathUtils", () => {
 
 		it("should use fallback pattern if some results are missing, " +
 			"onError=fallback and there is a fallback pattern", () => {
-			const pattern: TStringPattern = {
-				stringPattern: "{{$.abc}}, {{$.lastName}}! {{$.firstName}}",
-				onError: "fallback",
-				fallback: "{{$.address.city}}",
-			};
-			expect(JsonPathUtils.parse(pattern, data)).toEqual("Nara");
+				const pattern: TStringPattern = {
+					stringPattern: "{{$.abc}}, {{$.lastName}}! {{$.firstName}}",
+					onError: "fallback",
+					fallback: "{{$.address.city}}",
+				};
+				expect(JsonPathUtils.parse(pattern, data)).toEqual("Nara");
 
-			const patternForArray: TStringPattern = {
-				stringPattern: "{{$.emptyArray}}",
-				onError: "fallback",
-				fallback: "{{$.address.city}}",
-			};
-			expect(JsonPathUtils.parse(patternForArray, data)).toEqual("Nara");
-		});
+				const patternForArray: TStringPattern = {
+					stringPattern: "{{$.emptyArray}}",
+					onError: "fallback",
+					fallback: "{{$.address.city}}",
+				};
+				expect(JsonPathUtils.parse(patternForArray, data)).toEqual("Nara");
+			});
 
 		it("should not use fallback pattern if some results are missing, " +
 			"onError=fallback but there is no fallback pattern", () => {
-			const pattern: TStringPattern = {
-				stringPattern: "{{$.abc}}, {{$.lastName}}! {{$.firstName}}",
-				onError: "fallback",
-				fallback: null,
-			};
-			expect(JsonPathUtils.parse(pattern, data)).toEqual(", doe! John");
+				const pattern: TStringPattern = {
+					stringPattern: "{{$.abc}}, {{$.lastName}}! {{$.firstName}}",
+					onError: "fallback",
+					fallback: null,
+				};
+				expect(JsonPathUtils.parse(pattern, data)).toEqual(", doe! John");
+			});
+
+		describe("mask", () => {
+			describe("uinfin", () => {
+				it("should mask uinfin", () => {
+					const pattern: TStringPattern = {
+						stringPattern: "{{$.uinfin}}",
+						mask: { type: "uinfin" },
+					};
+					expect(JsonPathUtils.parse(pattern, { uinfin: "S1234567D" })).toEqual("S****567D");
+				});
+
+				it("should mask the uinfin fragments of a string", () => {
+					const pattern: TStringPattern = {
+						stringPattern: "{{$.key}}",
+						mask: { type: "uinfin" },
+					};
+					expect(JsonPathUtils.parse(pattern, { key: "uinfin=S1234567D&id=123 hello S1234567D" })).toEqual(
+						"uinfin=S****567D&id=123 hello S****567D",
+					);
+				});
+
+				it("should replace with character specified in replacement", () => {
+					const pattern: TStringPattern = {
+						stringPattern: "{{$.uinfin}}",
+						mask: { type: "uinfin", replacement: "-" },
+					};
+					expect(JsonPathUtils.parse(pattern, { uinfin: "S1234567D" })).toEqual("S----567D");
+
+					const pattern2: TStringPattern = {
+						stringPattern: "{{$.key}}",
+						mask: { type: "uinfin", replacement: "-" },
+					};
+					expect(JsonPathUtils.parse(pattern2, { key: "uinfin=S1234567D&id=123 hello S1234567D" })).toEqual(
+						"uinfin=S----567D&id=123 hello S----567D",
+					);
+				});
+			});
+
+			describe("whole", () => {
+				it("should mask the entire value", () => {
+					const pattern: TStringPattern = {
+						stringPattern: "{{$.firstName}}",
+						mask: { type: "whole" },
+					};
+					expect(JsonPathUtils.parse(pattern, data)).toEqual("****");
+
+					const pattern2: TStringPattern = {
+						stringPattern: "{{$.firstName}} {{$.lastName}}",
+						mask: { type: "whole" },
+					};
+					expect(JsonPathUtils.parse(pattern2, data)).toEqual("********");
+				});
+
+				it("should replace with character specified in replacement", () => {
+					const pattern: TStringPattern = {
+						stringPattern: "{{$.firstName}}",
+						mask: { type: "whole", replacement: "-" },
+					};
+					expect(JsonPathUtils.parse(pattern, data)).toEqual("----");
+
+					const pattern2: TStringPattern = {
+						stringPattern: "{{$.firstName}} {{$.lastName}}",
+						mask: { type: "whole", replacement: "-" },
+					};
+					expect(JsonPathUtils.parse(pattern2, data)).toEqual("--------");
+				});
+			});
 		});
 	});
 
@@ -253,21 +321,21 @@ describe("JsonPathUtils", () => {
 
 			it("should return correct output for object pattern with wrap:false, " +
 				"with actual empty array result", () => {
-				const pattern = { objectPattern: "$.emptyArray", wrap: false };
-				expect(JsonPathUtils.parse(pattern, data)).toEqual([]);
-			});
+					const pattern = { objectPattern: "$.emptyArray", wrap: false };
+					expect(JsonPathUtils.parse(pattern, data)).toEqual([]);
+				});
 
 			it("should return correct output for object pattern with wrap:false, " +
 				"with actual single-element array result", () => {
-				const pattern = { objectPattern: "$.singleElemArray", wrap: false };
-				expect(JsonPathUtils.parse(pattern, data)).toEqual(["234"]);
-			});
+					const pattern = { objectPattern: "$.singleElemArray", wrap: false };
+					expect(JsonPathUtils.parse(pattern, data)).toEqual(["234"]);
+				});
 
 			it("should return correct output for object pattern with wrap:false, " +
 				"with actual multi-element array result", () => {
-				const pattern = { objectPattern: "$.multiElemArray", wrap: false };
-				expect(JsonPathUtils.parse(pattern, data)).toEqual(["234", "987"]);
-			});
+					const pattern = { objectPattern: "$.multiElemArray", wrap: false };
+					expect(JsonPathUtils.parse(pattern, data)).toEqual(["234", "987"]);
+				});
 		});
 
 		describe("Wrap: 'unwrap'", () => {
@@ -320,21 +388,21 @@ describe("JsonPathUtils", () => {
 
 			it("should return correct output for object pattern with wrap:'unwrap', " +
 				"with actual empty array result", () => {
-				const pattern: TPattern = { objectPattern: "$.emptyArray", wrap: "unwrap" };
-				expect(JsonPathUtils.parse(pattern, data)).toEqual([]);
-			});
+					const pattern: TPattern = { objectPattern: "$.emptyArray", wrap: "unwrap" };
+					expect(JsonPathUtils.parse(pattern, data)).toEqual([]);
+				});
 
 			it("should return correct output for object pattern with wrap:'unwrap', " +
 				"with actual single-element array result", () => {
-				const pattern: TPattern = { objectPattern: "$.singleElemArray", wrap: "unwrap" };
-				expect(JsonPathUtils.parse(pattern, data)).toEqual("234");
-			});
+					const pattern: TPattern = { objectPattern: "$.singleElemArray", wrap: "unwrap" };
+					expect(JsonPathUtils.parse(pattern, data)).toEqual("234");
+				});
 
 			it("should return correct output for object pattern with wrap:'unwrap', " +
 				"with actual multi-element array result", () => {
-				const pattern: TPattern = { objectPattern: "$.multiElemArray", wrap: "unwrap" };
-				expect(JsonPathUtils.parse(pattern, data)).toEqual(["234", "987"]);
-			});
+					const pattern: TPattern = { objectPattern: "$.multiElemArray", wrap: "unwrap" };
+					expect(JsonPathUtils.parse(pattern, data)).toEqual(["234", "987"]);
+				});
 		});
 
 		describe("Wrap: 'wrap'", () => {
@@ -389,21 +457,21 @@ describe("JsonPathUtils", () => {
 
 			it("should return correct output for object pattern with wrap:'wrap', " +
 				"with actual empty array result", () => {
-				const pattern: TPattern = { objectPattern: "$.emptyArray", wrap: "wrap" };
-				expect(JsonPathUtils.parse(pattern, data)).toEqual([]);
-			});
+					const pattern: TPattern = { objectPattern: "$.emptyArray", wrap: "wrap" };
+					expect(JsonPathUtils.parse(pattern, data)).toEqual([]);
+				});
 
 			it("should return correct output for object pattern with wrap:'wrap', " +
 				"with actual single-element array result", () => {
-				const pattern: TPattern = { objectPattern: "$.singleElemArray", wrap: "wrap" };
-				expect(JsonPathUtils.parse(pattern, data)).toEqual(["234"]);
-			});
+					const pattern: TPattern = { objectPattern: "$.singleElemArray", wrap: "wrap" };
+					expect(JsonPathUtils.parse(pattern, data)).toEqual(["234"]);
+				});
 
 			it("should return correct output for object pattern with wrap:'wrap', " +
 				"with actual multi-element array result", () => {
-				const pattern: TPattern = { objectPattern: "$.multiElemArray", wrap: "wrap" };
-				expect(JsonPathUtils.parse(pattern, data)).toEqual(["234", "987"]);
-			});
+					const pattern: TPattern = { objectPattern: "$.multiElemArray", wrap: "wrap" };
+					expect(JsonPathUtils.parse(pattern, data)).toEqual(["234", "987"]);
+				});
 		});
 	});
 
@@ -643,46 +711,46 @@ describe("JsonPathUtils", () => {
 
 		it("should iterate through and replace array object if it contains direct " +
 			"stringPattern or objectPattern keys", () => {
-			const template = {
-				search: {
-					resourceType: { stringPattern: "{{$.data.resourceType}}" },
-					resourceSubType: { stringPattern: "{{$.data.resourceSubType}}" },
-				},
-				dateTime: [
-					{ stringPattern: "{{$.data.date}}T{{$.data.startTime}}+08:00" },
-					{ stringPattern: "{{$.data.date}}T{{$.data.endTime}}+08:00" },
-					{
-						objectPattern: "$.data.updatedAt",
-						wrap: false,
-						parseString: "datetime",
-						datetimeFormat: "YYYY-MM-DD",
+				const template = {
+					search: {
+						resourceType: { stringPattern: "{{$.data.resourceType}}" },
+						resourceSubType: { stringPattern: "{{$.data.resourceSubType}}" },
 					},
-				],
-			};
-			const ctx = {
-				data: {
-					resourceType: "123",
-					resourceSubType: "234",
-					date: "2023-03-30",
-					startTime: "09:00",
-					endTime: "10:00",
-					updatedAt: "2023-03-10T13:25:54+08:00",
-				},
-			};
+					dateTime: [
+						{ stringPattern: "{{$.data.date}}T{{$.data.startTime}}+08:00" },
+						{ stringPattern: "{{$.data.date}}T{{$.data.endTime}}+08:00" },
+						{
+							objectPattern: "$.data.updatedAt",
+							wrap: false,
+							parseString: "datetime",
+							datetimeFormat: "YYYY-MM-DD",
+						},
+					],
+				};
+				const ctx = {
+					data: {
+						resourceType: "123",
+						resourceSubType: "234",
+						date: "2023-03-30",
+						startTime: "09:00",
+						endTime: "10:00",
+						updatedAt: "2023-03-10T13:25:54+08:00",
+					},
+				};
 
-			const expected = {
-				search: {
-					resourceType: "123",
-					resourceSubType: "234",
-				},
-				dateTime: [
-					"2023-03-30T09:00+08:00",
-					"2023-03-30T10:00+08:00",
-					"2023-03-10",
-				],
-			};
-			expect(JsonPathUtils.replacePattern(template, ctx)).toEqual(expected);
-		});
+				const expected = {
+					search: {
+						resourceType: "123",
+						resourceSubType: "234",
+					},
+					dateTime: [
+						"2023-03-30T09:00+08:00",
+						"2023-03-30T10:00+08:00",
+						"2023-03-10",
+					],
+				};
+				expect(JsonPathUtils.replacePattern(template, ctx)).toEqual(expected);
+			});
 
 		it("should return primitive values as is", () => {
 			const template = {

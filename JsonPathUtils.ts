@@ -1,4 +1,5 @@
 import { ZonedDateTime } from "@js-joda/core";
+import { RedactUtils } from "@wog/mol-lib-api-contract/utils/native/RedactUtils";
 import { JSONPath } from "jsonpath-plus";
 import * as _ from "lodash";
 import * as moment from "moment";
@@ -25,8 +26,18 @@ export type TPatternWithErrorHandling<T> = TPatternWithError & T | TPatternWithF
  * By default, JsonPaths that return nothing are ignored. This can be customized using `onError` and `fallback`.
  */
 export type TStringPattern = TPatternWithErrorHandling<{
-	// a string with placeholders surrounded by a double-curly bracket (mustache). Each placeholder is a JsonPath expression.
+	/** a string with placeholders surrounded by a double-curly bracket (mustache). Each placeholder is a JsonPath expression. */
 	stringPattern: string;
+	mask?: {
+		// TODO: introduce `default` option if there are more masking options, e.g. email and mobile number. this option can supporting all masking patterns except `whole`
+		/**
+		 * - type=whole masks the entire output
+		 * - type=uinfin masks value of uinfin pattern where the second to fifth characters will be masked, e.g. S****567D. this applies to the matching parts of a string as well.
+		 */
+		type: "uinfin" | "whole";
+		// character to use in place of the masked character, defaults to asterisk (*)
+		replacement?: string;
+	}
 }>;
 
 /**
@@ -180,7 +191,9 @@ export namespace JsonPathUtils {
 
 	const getResultFromStringPattern = (pattern: TStringPattern, data: TData): TReturn<TStringPattern> => {
 		const parsedPatternsList = pattern.stringPattern.matchAll(/\{\{(.*?)\}\}/g);
-		let output = pattern.stringPattern;
+		const { stringPattern, mask } = pattern;
+		const { type: maskType, replacement: maskReplacement = "*" } = mask || {};
+		let output = stringPattern;
 		let hasMissingValues = false;
 
 		for (const parsedPattern of parsedPatternsList) {
@@ -202,6 +215,15 @@ export namespace JsonPathUtils {
 			} else if (pattern.onError === "fallback" && pattern.fallback) {
 				return getResultFromStringPattern({ ...pattern, stringPattern: pattern.fallback }, data);
 			}
+		}
+
+		switch (maskType) {
+			case "uinfin":
+				output = output.replace(/[STFGM]\d{7}[A-Z]/gi, (uinfinMatch) => RedactUtils.redactUinfin(uinfinMatch, Array(4).fill(maskReplacement).join("")));
+				break;
+			case "whole":
+				output = output.replace(/./gi, maskReplacement);
+				break;
 		}
 
 		return output;
