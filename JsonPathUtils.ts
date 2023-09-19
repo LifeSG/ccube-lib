@@ -1,3 +1,4 @@
+import { ZonedDateTime } from "@js-joda/core";
 import { JSONPath } from "jsonpath-plus";
 import * as _ from "lodash";
 import * as moment from "moment";
@@ -102,13 +103,26 @@ export interface TObjectMergePattern {
  *
  * By default, the result of `conditionalPattern` is checked for truthiness. See `falseyList`.
  *
- * If `conditionalCheck='equal'`, the result is instead checked for equality to `conditionalEqualValue`.
+ * If `conditionalCheck='equal'`, the result is instead checked for equality to `conditionalCheckValue`.
  */
 export interface TConditionalPattern {
+	// JsonPath expression that provides the value to check
 	conditionalPattern: string;
-	conditionalCheck?: "boolean" | "equal";
-	conditionalEqualValue?: any;
+	/**
+	 * type of check to perform. Default is `boolean`, which determines the truthy-ness of the value.
+	 *
+	 * `equal` checks equality with the value in `conditionalCheckValue`.
+	 *
+	 * `isBefore` and `isAfter` check if a datetime value is before/after `conditionalCheckValue`. All datetimes will be interpreted in ISO format.
+	 *
+	 * `lt`, `lte`, `gt` and `gte` perform numerical less-than(-equal) or greater-than(-equal) checks.
+	 */
+	conditionalCheck?: "boolean" | "equal" | "isBefore" | "isAfter" | "lt" | "lte" | "gt" | "gte";
+	// reference value to check against. Not used when check is `boolean`.
+	conditionalCheckValue?: any;
+	// if the check returns true, the pattern evaluates to this value
 	trueValue: TPattern;
+	// if the check returns false, the pattern evaluates to this value
 	falseValue?: TPattern;
 }
 
@@ -277,29 +291,89 @@ export namespace JsonPathUtils {
 		return _.merge({}, ...array);
 	};
 
+	const checkConditionalEqual = (pattern: TConditionalPattern, data) => {
+		const value = getResultFromObjectPattern({
+			objectPattern: pattern.conditionalPattern,
+			wrap: "unwrap",
+		}, data);
+		return value === pattern.conditionalCheckValue;
+	};
+
+	const checkConditionalDatetime = (pattern: TConditionalPattern, data) => {
+		const value = getResultFromObjectPattern({
+			objectPattern: pattern.conditionalPattern,
+			wrap: "unwrap",
+			parseString: "datetime",
+		}, data);
+		const date = ZonedDateTime.parse(String(value));
+		const checkDate = ZonedDateTime.parse(String(pattern.conditionalCheckValue));
+
+		if (pattern.conditionalCheck === "isBefore") {
+			return date.isBefore(checkDate);
+		} else {
+			return date.isAfter(checkDate);
+		}
+	};
+
+	function checkConditionalNumeric(pattern: TConditionalPattern, data) {
+		const value = getResultFromObjectPattern({
+			objectPattern: pattern.conditionalPattern,
+			wrap: "unwrap",
+			parseString: "number",
+		}, data);
+
+		if (pattern.conditionalCheck === "lt") {
+			return value < pattern.conditionalCheckValue;
+		} else if (pattern.conditionalCheck === "lte") {
+			return value <= pattern.conditionalCheckValue;
+		} else if (pattern.conditionalCheck === "gt") {
+			return value > pattern.conditionalCheckValue;
+		} else if (pattern.conditionalCheck === "gte") {
+			return value >= pattern.conditionalCheckValue;
+		} else {
+			throw new Error("unknown numerical check method " + pattern.conditionalCheck);
+		}
+	}
+
+	function checkConditionalBoolean(pattern: TConditionalPattern, data) {
+		return !!getResultFromObjectPattern({
+			objectPattern: pattern.conditionalPattern,
+			wrap: "unwrap",
+			parseString: "boolean",
+		}, data);
+	}
+
 	const getResultFromConditionalPattern = (
 		pattern: TConditionalPattern,
 		data: TData,
 	): TReturn<TConditionalPattern> => {
 		let cond: boolean;
-		if (pattern.conditionalCheck === "equal") {
-			const value = getResultFromObjectPattern({
-				objectPattern: pattern.conditionalPattern,
-				wrap: "unwrap",
-			}, data);
-			cond = value === pattern.conditionalEqualValue;
-		} else { // "boolean" (default)
-			cond = !!getResultFromObjectPattern({
-				objectPattern: pattern.conditionalPattern,
-				wrap: "unwrap",
-				parseString: "boolean",
-			}, data);
+		switch (pattern.conditionalCheck) {
+			case "equal":
+				cond = checkConditionalEqual(pattern, data);
+				break;
+			case "isBefore":
+			case "isAfter":
+				cond = checkConditionalDatetime(pattern, data);
+				break;
+			case "lt":
+			case "lte":
+			case "gt":
+			case "gte":
+				cond = checkConditionalNumeric(pattern, data);
+				break;
+			case "boolean": // default
+			default:
+				cond = checkConditionalBoolean(pattern, data);
+				break;
 		}
+
 		if (cond) {
 			return replacePattern(pattern.trueValue, data);
 		}
 		return replacePattern(pattern.falseValue, data);
 	};
+
 
 	/**
 	 * Parses a single placeholder pattern. To replace all placeholders inside an object template, use `replacePattern` instead.

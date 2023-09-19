@@ -1040,7 +1040,7 @@ describe("JsonPathUtils", () => {
 				p: {
 					conditionalPattern: "$.firstName",
 					conditionalCheck: "equal",
-					conditionalEqualValue: "John",
+					conditionalCheckValue: "John",
 					trueValue: "it's equal",
 					falseValue: "it's not equal",
 				} as TConditionalPattern,
@@ -1056,7 +1056,7 @@ describe("JsonPathUtils", () => {
 				p: {
 					conditionalPattern: "$.firstName",
 					conditionalCheck: "equal",
-					conditionalEqualValue: "Foo",
+					conditionalCheckValue: "Foo",
 					trueValue: "it's equal",
 					falseValue: "it's not equal",
 				} as TConditionalPattern,
@@ -1067,7 +1067,7 @@ describe("JsonPathUtils", () => {
 			expect(JsonPathUtils.replacePattern(template, data)).toEqual(expected);
 		});
 
-		it('should check for missing values with conditionalCheck="equal" and conditionalEqualValue=undefined (default)',
+		it('should check for missing values with conditionalCheck="equal" and conditionalCheckValue=undefined (default)',
 			() => {
 				const template = {
 					p: {
@@ -1082,6 +1082,96 @@ describe("JsonPathUtils", () => {
 				};
 				expect(JsonPathUtils.replacePattern(template, data)).toEqual(expected);
 			});
+
+		describe('numerical check', () => {
+			it.each([
+				["lt", "age", 27, true],
+				["lt", "age", 26, false],
+				["lte", "age", 27, true],
+				["lte", "age", 26, true],
+				["lte", "age", 25, false],
+
+				["gt", "age", 25, true],
+				["gt", "age", 26, false],
+				["gte", "age", 25, true],
+				["gte", "age", 26, true],
+				["gte", "age", 27, false],
+
+				["lt", "floatAttr", 12.4, true],
+				["lt", "floatAttr", 12.3, false],
+				["lte", "floatAttr", 12.4, true],
+				["lte", "floatAttr", 12.3, true],
+				["lte", "floatAttr", 12.2, false],
+
+				["gt", "floatAttr", 12.2, true],
+				["gt", "floatAttr", 12.3, false],
+				["gte", "floatAttr", 12.2, true],
+				["gte", "floatAttr", 12.3, true],
+				["gte", "floatAttr", 12.4, false],
+
+				["lt", "countString", 124, true],
+				["lt", "countString", 123, false],
+				["lte", "countString", 124, true],
+				["lte", "countString", 123, true],
+				["lte", "countString", 122, false],
+				["gt", "countString", 122, true],
+				["gt", "countString", 123, false],
+				["gte", "countString", 122, true],
+				["gte", "countString", 123, true],
+				["gte", "countString", 124, false],
+			])('should check %s against %s(%d) as %s', (check, key, value, expected) => {
+				const template = {
+					p: {
+						conditionalPattern: "$." + key,
+						conditionalCheck: check,
+						conditionalCheckValue: value,
+						trueValue: true,
+						falseValue: false,
+					} as TConditionalPattern,
+				};
+				expect(JsonPathUtils.replacePattern(template, data)).toEqual({ p: expected });
+			});
+		});
+
+		describe('date check', () => {
+			it.each`
+			check | value | expected
+			${"isBefore"} | ${"2023-03-10T13:25:55+08:00"} | ${true}
+			${"isBefore"} | ${"2023-03-10T13:25:53+08:00"} | ${false}
+			${"isAfter"} | ${"2023-03-10T13:25:53+08:00"} | ${true}
+			${"isAfter"} | ${"2023-03-10T13:25:55+08:00"} | ${false}
+			`('should check $check=$expected with full datetime', ({ check, value, expected }) => {
+				const template = {
+					p: {
+						conditionalPattern: "$.someDatetime1",
+						conditionalCheck: check,
+						conditionalCheckValue: value,
+						trueValue: true,
+						falseValue: false,
+					} as TConditionalPattern,
+				};
+				expect(JsonPathUtils.replacePattern(template, data)).toEqual({ p: expected });
+			});
+
+			it.each`
+			check | value | expected
+			${"isBefore"} | ${"2023-03-11T00:00:00+08:00"} | ${true}
+			${"isBefore"} | ${"2023-03-09T00:00:00+08:00"} | ${false}
+			${"isAfter"} | ${"2023-03-09T00:00:00+08:00"} | ${true}
+			${"isAfter"} | ${"2023-03-11T00:00:00+08:00"} | ${false}
+			`('should check $check=$expected with full date-only', ({ check, value, expected }) => {
+				const template = {
+					p: {
+						conditionalPattern: "$.someDate",
+						conditionalCheck: check,
+						conditionalCheckValue: value,
+						trueValue: true,
+						falseValue: false,
+					} as TConditionalPattern,
+				};
+				expect(JsonPathUtils.replacePattern(template, data)).toEqual({ p: expected });
+			});
+		});
 	});
 
 
