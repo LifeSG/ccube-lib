@@ -7,11 +7,13 @@ export type TData = string | number | boolean | object | any[] | null;
 export interface TPatternWithError {
 	onError?: "ignore" | "throwError";
 }
+
 export interface TPatternWithFallback {
 	onError: "fallback";
 	// used instead if error occurred.
 	fallback: string;
 }
+
 export type TPatternWithErrorHandling<T> = TPatternWithError & T | TPatternWithFallback & T;
 
 /**
@@ -78,7 +80,9 @@ export interface TArrayMapPattern {
 export interface TArrayMergePattern {
 	// array of that can contain Patterns
 	arrayMergePattern: (TPattern | any)[];
-	// flatten the array elements further in case of nested arrays. Default is `1`.
+	// determine how the arrays are merged. Default `concat` simply flattens the array and keeps all items. `intersect` takes each element as an array, and intersects all arrays and keeps only the common elements. Primitives are considered a single-element array.
+	mergeMethod?: "concat" | "intersect";
+	// flatten the array elements further in case of nested arrays. Default is `1`. Used in mergeMethod `concat`.
 	flattenDepth?: number;
 	// Remove duplicate items after merging. Default is `false`.
 	removeDuplicates?: boolean;
@@ -130,16 +134,16 @@ export type TPattern =
 
 export type TReturn<T extends TPattern> = T extends TObjectPattern
 	? T extends { parseString: "boolean" } ? boolean
-	: T extends { parseString: "number" } ? number
-	: T extends { parseString: "array" } ? any[]
-	: T extends { parseString: "datetime" } ? string
-	: object | any[]
+		: T extends { parseString: "number" } ? number
+			: T extends { parseString: "array" } ? any[]
+				: T extends { parseString: "datetime" } ? string
+					: object | any[]
 	: T extends TStringPattern ? string
-	: T extends TArrayMapPattern ? any | any[]
-	: T extends TArrayMergePattern ? any[]
-	: T extends TObjectMergePattern ? any
-	: T extends TConditionalPattern ? TData
-	: T;
+		: T extends TArrayMapPattern ? any | any[]
+			: T extends TArrayMergePattern ? any[]
+				: T extends TObjectMergePattern ? any
+					: T extends TConditionalPattern ? TData
+						: T;
 
 export namespace JsonPathUtils {
 
@@ -254,7 +258,11 @@ export namespace JsonPathUtils {
 			if (isPattern(p)) return parse(p, data);
 			return p;
 		});
-		array = array.flat(pattern.flattenDepth ?? 1);
+		if (pattern.mergeMethod === "intersect") {
+			array = _.intersection(...array.map(e => Array.isArray(e) ? e : [e]));
+		} else {
+			array = array.flat(pattern.flattenDepth ?? 1);
+		}
 		if (pattern.removeDuplicates) {
 			array = _.uniq(array);
 		}

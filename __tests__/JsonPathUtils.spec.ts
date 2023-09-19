@@ -781,66 +781,132 @@ describe("JsonPathUtils", () => {
 	});
 
 	describe('ArrayMergePattern', () => {
-		const template = {
-			mapped: {
-				arrayMergePattern: [
-					"just a string",
-					{ objectPattern: "$.phoneNumbers..type", wrap: "wrap" },
-					42,
-					{ stringPattern: "{{$.firstName}}" },
-					{ objectPattern: "$.phoneNumbers..number", wrap: "wrap" },
-					{ unrelated: "object" },
-				],
-			},
-		};
-
-		it('should merge the arrays', () => {
-			const expected = {
-				mapped: [
-					"just a string",
-					"iPhone",
-					"home",
-					"iPhone",
-					42,
-					"John",
-					"0123-4567-8888",
-					"0123-4567-8910",
-					"0123-4567-1234",
-					{ unrelated: "object" },
-				],
-			};
-
-			expect(JsonPathUtils.replacePattern(template, data)).toEqual(expected);
-		});
-
-		it('should work with empty array', () => {
-			const expected = {
-				mapped: [],
-			};
-			expect(JsonPathUtils.replacePattern(
-				{ mapped: { arrayMergePattern: [] } },
-				{ phoneNumbers: [] },
-			)).toEqual(expected);
-		});
-
-		it('should remove duplicates', () => {
-			const expected = {
-				mapped: [
-					"just a string",
-					"iPhone",
-					"home",
-				],
-			};
-
-			expect(JsonPathUtils.replacePattern({
+		describe('merge', () => {
+			const template = {
 				mapped: {
 					arrayMergePattern: [
 						"just a string",
 						{ objectPattern: "$.phoneNumbers..type", wrap: "wrap" },
+						42,
+						{ stringPattern: "{{$.firstName}}" },
+						{ objectPattern: "$.phoneNumbers..number", wrap: "wrap" },
+						{ unrelated: "object" },
 					],
-					removeDuplicates: true,
 				},
-			}, data)).toEqual(expected);
+			};
+
+			it('should merge the arrays', () => {
+				const expected = {
+					mapped: [
+						"just a string",
+						"iPhone",
+						"home",
+						"iPhone",
+						42,
+						"John",
+						"0123-4567-8888",
+						"0123-4567-8910",
+						"0123-4567-1234",
+						{ unrelated: "object" },
+					],
+				};
+
+				expect(JsonPathUtils.replacePattern(template, data)).toEqual(expected);
+			});
+
+			it('should work with empty array', () => {
+				const expected = {
+					mapped: [],
+				};
+				expect(JsonPathUtils.replacePattern(
+					{ mapped: { arrayMergePattern: [] } },
+					{ phoneNumbers: [] },
+				)).toEqual(expected);
+			});
+
+			it('should remove duplicates', () => {
+				const expected = {
+					mapped: [
+						"just a string",
+						"iPhone",
+						"home",
+					],
+				};
+
+				expect(JsonPathUtils.replacePattern({
+					mapped: {
+						arrayMergePattern: [
+							"just a string",
+							{ objectPattern: "$.phoneNumbers..type", wrap: "wrap" },
+						],
+						removeDuplicates: true,
+					},
+				}, data)).toEqual(expected);
+			});
+		});
+
+		describe('intersect', () => {
+			const template = {
+				intersectArrays: {
+					arrayMergePattern: [
+						{ objectPattern: "$.phoneNumbers..number", wrap: "wrap" },
+						[
+							"0123-4567-8888",
+							"0123-4567-8910",
+							"0123-4567-8911", // doesn't exist
+						],
+					],
+					mergeMethod: "intersect",
+				},
+				intersectValue: {
+					arrayMergePattern: [
+						{ objectPattern: "$.phoneNumbers..number", wrap: "wrap" },
+						"0123-4567-8910",
+					],
+					mergeMethod: "intersect",
+				},
+			};
+
+			it('should return the intersection array', () => {
+				const expected = {
+					intersectArrays: [
+						"0123-4567-8888",
+						"0123-4567-8910",
+					],
+					intersectValue: [
+						"0123-4567-8910",
+					],
+				};
+
+				expect(JsonPathUtils.replacePattern(template, data))
+					.toEqual(expected);
+			});
+
+			it('should return empty intersections', () => {
+				const expected = {
+					intersectArrays: [],
+					intersectValue: [],
+				};
+
+				expect(JsonPathUtils.replacePattern(template, {
+					phoneNumbers: [],
+				})).toEqual(expected);
+
+				expect(JsonPathUtils.replacePattern(template, {})).toEqual(expected);
+
+				expect(JsonPathUtils.replacePattern(template, {
+					phoneNumbers: [
+						{
+							type: "iPhone",
+							number: "0123-4567-9999",
+						},
+						{
+							type: "home",
+							number: "0123-4567-0000",
+						},
+					],
+				})).toEqual(expected);
+			});
 		});
 	});
 
