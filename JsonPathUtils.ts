@@ -219,7 +219,7 @@ export namespace JsonPathUtils {
 
 		switch (maskType) {
 			case "uinfin":
-				output = output.replace(/[STFGM]\d{7}[A-Z]/gi, (uinfinMatch) => RedactUtils.redactUinfin(uinfinMatch, Array(4).fill(maskReplacement).join("")));
+				output = output.replace(/[STFGM]\d{7}[A-Z]/gi, (uinfinMatch) => RedactUtils.redactUinfin(uinfinMatch, maskReplacement.repeat(4)));
 				break;
 			case "whole":
 				output = output.replace(/./gi, maskReplacement);
