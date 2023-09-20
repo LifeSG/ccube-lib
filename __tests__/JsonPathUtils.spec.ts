@@ -907,6 +907,30 @@ describe("JsonPathUtils", () => {
 					],
 				})).toEqual(expected);
 			});
+
+			it('should evaluate nested patterns in sub-arrays', () => {
+				const nested = {
+					p: {
+						arrayMergePattern: [
+							{ objectPattern: "$.phoneNumbers..number", wrap: "wrap" },
+							[
+								{ stringPattern: "{{$.phoneNumbers[0].number}}" },
+								"0123-4567-8910",
+							],
+						],
+						mergeMethod: "intersect",
+					},
+				};
+				const expected = {
+					p: [
+						"0123-4567-8888",
+						"0123-4567-8910",
+					],
+				};
+
+				expect(JsonPathUtils.replacePattern(nested, data))
+					.toEqual(expected);
+			});
 		});
 	});
 

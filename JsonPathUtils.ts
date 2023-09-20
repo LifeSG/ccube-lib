@@ -270,6 +270,7 @@ export namespace JsonPathUtils {
 	const getResultFromArrayMergePattern = (pattern: TArrayMergePattern, data: TData): TReturn<TArrayMergePattern> => {
 		let array = pattern.arrayMergePattern.map(p => {
 			if (isPattern(p)) return parse(p, data);
+			if (_.isArray(p)) return replaceArrayElems(p, data);
 			return p;
 		});
 		if (pattern.mergeMethod === "intersect") {
@@ -397,6 +398,18 @@ export namespace JsonPathUtils {
 		return pattern;
 	};
 
+	function replaceArrayElems(value: any[], values) {
+		return _.map(value, (innerValue: object) => {
+			if (_.isObject(innerValue)) {
+				if (isPattern(innerValue)) {
+					return parse(innerValue as TPattern, values);
+				}
+				return replacePattern(innerValue, values);
+			}
+			return innerValue; // is a primitive value within array
+		});
+	}
+
 	/**
 	 * This function substitutes the patterns in the given template with the actual values.
 	 * The template should be a pattern, or an object that can contain patterns as values or inside arrays. This function will traverse all keys and arrays recursively and replace all patterns. Any value that is not a pattern is kept as-is in the result.
@@ -424,15 +437,7 @@ export namespace JsonPathUtils {
 			// Check if it is an array
 			if (_.isArray(value)) {
 				// Iterate over all elements in array and recursively call function for each, returning a mappedArray for collection
-				const mappedArray = _.map(value, (innerValue: object) => {
-					if (_.isObject(innerValue)) {
-						if (isPattern(innerValue)) {
-							return parse(innerValue as TPattern, values);
-						}
-						return replacePattern(innerValue, values);
-					}
-					return innerValue; // is a primitive value within array
-				});
+				const mappedArray = replaceArrayElems(value, values);
 				return [key, mappedArray];
 			}
 			// It is an object
