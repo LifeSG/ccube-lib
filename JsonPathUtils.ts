@@ -16,7 +16,7 @@ export interface TPatternWithFallback {
 	fallback: string;
 }
 
-export type TPatternWithErrorHandling<T> = TPatternWithError & T | TPatternWithFallback & T;
+export type TPatternWithErrorHandling<T> = (TPatternWithError & T) | (TPatternWithFallback & T);
 
 /**
  * Pattern to perform string interpolation. Placeholders are JsonPaths surrounded by a double-curly bracket (mustache).
@@ -37,7 +37,7 @@ export type TStringPattern = TPatternWithErrorHandling<{
 		type: "uinfin" | "whole";
 		// character to use in place of the masked character, defaults to asterisk (*)
 		replacement?: string;
-	}
+	};
 }>;
 
 /**
@@ -67,7 +67,6 @@ export interface TObjectPattern {
 	 */
 	wrap?: boolean | "wrap" | "unwrap";
 	// If wrap is not `true`, this can be used to further process the result, if it is a string, as a number, array, boolean or formatted datetime
-	// tslint:disable: max-union-size
 	parseString?: "number" | "array" | "boolean" | "datetime";
 	// if `parseString` is `datetime`, specify what datetime format the string should be formatted as. By default, the datetime is formatted in an ISO 8601 format.
 	datetimeFormat?: string;
@@ -148,47 +147,62 @@ export interface TNestedPattern {
  * A pattern is a primitive value, or one of multiple special placeholder patterns. The placeholder patterns are evaluated into an actual value by the functions `replacePattern` or `parse`.
  */
 export type TPattern =
-	string | number | boolean |
-	TStringPattern |
-	TObjectPattern |
-	TArrayMapPattern |
-	TArrayMergePattern |
-	TObjectMergePattern |
-	TConditionalPattern |
-	TNestedPattern;
+	| string
+	| number
+	| boolean
+	| TStringPattern
+	| TObjectPattern
+	| TArrayMapPattern
+	| TArrayMergePattern
+	| TObjectMergePattern
+	| TConditionalPattern
+	| TNestedPattern;
 
 export type TReturn<T extends TPattern> = T extends TObjectPattern
-	? T extends { parseString: "boolean" } ? boolean
-		: T extends { parseString: "number" } ? number
-			: T extends { parseString: "array" } ? any[]
-				: T extends { parseString: "datetime" } ? string
-					: object | any[]
-	: T extends TStringPattern ? string
-		: T extends TArrayMapPattern ? any | any[]
-			: T extends TArrayMergePattern ? any[]
-				: T extends TObjectMergePattern ? any
-					: T extends TConditionalPattern ? TData
-						: T;
+	? T extends { parseString: "boolean" }
+		? boolean
+		: T extends { parseString: "number" }
+		? number
+		: T extends { parseString: "array" }
+		? any[]
+		: T extends { parseString: "datetime" }
+		? string
+		: object | any[]
+	: T extends TStringPattern
+	? string
+	: T extends TArrayMapPattern
+	? any | any[]
+	: T extends TArrayMergePattern
+	? any[]
+	: T extends TObjectMergePattern
+	? any
+	: T extends TConditionalPattern
+	? TData
+	: T;
 
 export namespace JsonPathUtils {
-
-	const isPattern = (x: any): boolean => _.isObject(x) && (
-		"stringPattern" in x ||
-		"objectPattern" in x ||
-		"arrayMapPattern" in x ||
-		"arrayMergePattern" in x ||
-		"objectMergePattern" in x ||
-		"conditionalPattern" in x);
+	const isPattern = (x: any): boolean =>
+		_.isObject(x) &&
+		("stringPattern" in x ||
+			"objectPattern" in x ||
+			"arrayMapPattern" in x ||
+			"arrayMergePattern" in x ||
+			"objectMergePattern" in x ||
+			"conditionalPattern" in x);
 
 	const isStringPattern = (x: any): x is TStringPattern => (x as TStringPattern).stringPattern !== undefined;
 	const isObjectPattern = (x: any): x is TObjectPattern => (x as TObjectPattern).objectPattern !== undefined;
 	const isArrayMapPattern = (x: any): x is TArrayMapPattern => (x as TArrayMapPattern).arrayMapPattern !== undefined;
-	const isArrayMergePattern = (x: any): x is TArrayMergePattern => (x as TArrayMergePattern).arrayMergePattern !== undefined;
-	const isObjectMergePattern = (x: any): x is TObjectMergePattern => (x as TObjectMergePattern).objectMergePattern !== undefined;
-	const isConditionalPattern = (x: any): x is TConditionalPattern => (x as TConditionalPattern).conditionalPattern !== undefined;
+	const isArrayMergePattern = (x: any): x is TArrayMergePattern =>
+		(x as TArrayMergePattern).arrayMergePattern !== undefined;
+	const isObjectMergePattern = (x: any): x is TObjectMergePattern =>
+		(x as TObjectMergePattern).objectMergePattern !== undefined;
+	const isConditionalPattern = (x: any): x is TConditionalPattern =>
+		(x as TConditionalPattern).conditionalPattern !== undefined;
 
 	const falseyList = ["false", "0", "-0", "0n", "", "null", "undefined", "nan", "[]"];
 
+	// eslint-disable-next-line sonarjs/cognitive-complexity
 	const getResultFromStringPattern = (pattern: TStringPattern, data: TData): TReturn<TStringPattern> => {
 		const parsedPatternsList = pattern.stringPattern.matchAll(/\{\{(.*?)\}\}/g);
 		const { stringPattern, mask } = pattern;
@@ -208,7 +222,6 @@ export namespace JsonPathUtils {
 			output = output.replace(parsedPattern[0], result === undefined ? "" : result);
 		}
 
-
 		if (hasMissingValues) {
 			if (pattern.onError === "throwError") {
 				throw new Error(`Missing output from "stringPattern" "${pattern.stringPattern}"`);
@@ -219,7 +232,9 @@ export namespace JsonPathUtils {
 
 		switch (maskType) {
 			case "uinfin":
-				output = output.replace(/[STFGM]\d{7}[A-Z]/gi, (uinfinMatch) => RedactUtils.redactUinfin(uinfinMatch, maskReplacement.repeat(4)));
+				output = output.replace(/[STFGM]\d{7}[A-Z]/gi, (uinfinMatch) =>
+					RedactUtils.redactUinfin(uinfinMatch, maskReplacement.repeat(4)),
+				);
 				break;
 			case "whole":
 				output = output.replace(/./gi, maskReplacement);
@@ -241,6 +256,7 @@ export namespace JsonPathUtils {
 			case "unwrap":
 				if (_.isArray(result) && result.length === 1) result = result[0];
 			// Fall-through
+			// eslint-disable-next-line no-fallthrough
 			case false:
 				if (pattern.parseString) result = parseResultFromString(pattern, result);
 				break;
@@ -272,7 +288,8 @@ export namespace JsonPathUtils {
 				break;
 			case "datetime":
 				result = moment(result, "YYYY MM DD").isValid()
-					? moment.parseZone(result).format(pattern.datetimeFormat)
+					? // eslint-disable-next-line import/namespace
+					  moment.parseZone(result).format(pattern.datetimeFormat)
 					: null;
 				break;
 			default:
@@ -290,13 +307,13 @@ export namespace JsonPathUtils {
 	};
 
 	const getResultFromArrayMergePattern = (pattern: TArrayMergePattern, data: TData): TReturn<TArrayMergePattern> => {
-		let array = pattern.arrayMergePattern.map(p => {
+		let array = pattern.arrayMergePattern.map((p) => {
 			if (isPattern(p)) return parse(p, data);
 			if (_.isArray(p)) return replaceArrayElems(p, data);
 			return p;
 		});
 		if (pattern.mergeMethod === "intersect") {
-			array = _.intersection(...array.map(e => Array.isArray(e) ? e : [e]));
+			array = _.intersection(...array.map((e) => (Array.isArray(e) ? e : [e])));
 		} else {
 			array = array.flat(pattern.flattenDepth ?? 1);
 		}
@@ -306,8 +323,11 @@ export namespace JsonPathUtils {
 		return array;
 	};
 
-	const getResultFromObjectMergePattern = (pattern: TObjectMergePattern, data: TData): TReturn<TObjectMergePattern> => {
-		const array = pattern.objectMergePattern.map(p => {
+	const getResultFromObjectMergePattern = (
+		pattern: TObjectMergePattern,
+		data: TData,
+	): TReturn<TObjectMergePattern> => {
+		const array = pattern.objectMergePattern.map((p) => {
 			if (isPattern(p)) return parse(p, data);
 			return p;
 		});
@@ -315,19 +335,25 @@ export namespace JsonPathUtils {
 	};
 
 	const checkConditionalEqual = (pattern: TConditionalPattern, data) => {
-		const value = getResultFromObjectPattern({
-			objectPattern: pattern.conditionalPattern,
-			wrap: "unwrap",
-		}, data);
+		const value = getResultFromObjectPattern(
+			{
+				objectPattern: pattern.conditionalPattern,
+				wrap: "unwrap",
+			},
+			data,
+		);
 		return value === pattern.conditionalCheckValue;
 	};
 
 	const checkConditionalDatetime = (pattern: TConditionalPattern, data) => {
-		const value = getResultFromObjectPattern({
-			objectPattern: pattern.conditionalPattern,
-			wrap: "unwrap",
-			parseString: "datetime",
-		}, data);
+		const value = getResultFromObjectPattern(
+			{
+				objectPattern: pattern.conditionalPattern,
+				wrap: "unwrap",
+				parseString: "datetime",
+			},
+			data,
+		);
 		const date = ZonedDateTime.parse(String(value));
 		const checkDate = ZonedDateTime.parse(String(pattern.conditionalCheckValue));
 
@@ -339,11 +365,14 @@ export namespace JsonPathUtils {
 	};
 
 	function checkConditionalNumeric(pattern: TConditionalPattern, data) {
-		const value = getResultFromObjectPattern({
-			objectPattern: pattern.conditionalPattern,
-			wrap: "unwrap",
-			parseString: "number",
-		}, data);
+		const value = getResultFromObjectPattern(
+			{
+				objectPattern: pattern.conditionalPattern,
+				wrap: "unwrap",
+				parseString: "number",
+			},
+			data,
+		);
 
 		if (pattern.conditionalCheck === "lt") {
 			return value < pattern.conditionalCheckValue;
@@ -359,11 +388,14 @@ export namespace JsonPathUtils {
 	}
 
 	function checkConditionalBoolean(pattern: TConditionalPattern, data) {
-		return !!getResultFromObjectPattern({
-			objectPattern: pattern.conditionalPattern,
-			wrap: "unwrap",
-			parseString: "boolean",
-		}, data);
+		return !!getResultFromObjectPattern(
+			{
+				objectPattern: pattern.conditionalPattern,
+				wrap: "unwrap",
+				parseString: "boolean",
+			},
+			data,
+		);
 	}
 
 	const getResultFromConditionalPattern = (
@@ -397,9 +429,9 @@ export namespace JsonPathUtils {
 		return replacePattern(pattern.falseValue, data);
 	};
 
-
 	/**
 	 * Parses a single placeholder pattern. To replace all placeholders inside an object template, use `replacePattern` instead.
+	 *
 	 * @param pattern A placeholder pattern.
 	 * @param data Contextual data that is used in the placeholder.
 	 */

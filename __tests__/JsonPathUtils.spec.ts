@@ -1,6 +1,6 @@
+/* eslint-disable id-denylist */
 import { JsonPathUtils, TConditionalPattern, TPattern, TStringPattern } from "../JsonPathUtils";
 
-// tslint:disable: no-big-function
 describe("JsonPathUtils", () => {
 	const data = {
 		firstName: "John",
@@ -66,7 +66,7 @@ describe("JsonPathUtils", () => {
 
 		it("should return correct output for string filter pattern with multiple results", () => {
 			const pattern = { stringPattern: "{{$.phoneNumbers[?(@.type=='iPhone')].number}}" };
-			expect(JsonPathUtils.parse(pattern, data)).toEqual(`[\"0123-4567-8888\",\"0123-4567-1234\"]`);
+			expect(JsonPathUtils.parse(pattern, data)).toEqual(`["0123-4567-8888","0123-4567-1234"]`);
 		});
 
 		it("should return empty string for string pattern with no results", () => {
@@ -84,7 +84,7 @@ describe("JsonPathUtils", () => {
 				stringPattern:
 					"{{$.phoneNumbers[?(@.type=='iPhone')].number}}, {{$.phoneNumbers[?(@.type=='abc')].number}}",
 			};
-			expect(JsonPathUtils.parse(pattern, data)).toEqual(`[\"0123-4567-8888\",\"0123-4567-1234\"], `);
+			expect(JsonPathUtils.parse(pattern, data)).toEqual(`["0123-4567-8888","0123-4567-1234"], `);
 		});
 
 		it("should return correct output for string pattern with actual null result", () => {
@@ -108,8 +108,10 @@ describe("JsonPathUtils", () => {
 			expect(() => JsonPathUtils.parse(patternForArray, data)).toThrow();
 		});
 
-		it("should use fallback pattern if some results are missing, " +
-			"onError=fallback and there is a fallback pattern", () => {
+		it(
+			"should use fallback pattern if some results are missing, " +
+				"onError=fallback and there is a fallback pattern",
+			() => {
 				const pattern: TStringPattern = {
 					stringPattern: "{{$.abc}}, {{$.lastName}}! {{$.firstName}}",
 					onError: "fallback",
@@ -123,17 +125,21 @@ describe("JsonPathUtils", () => {
 					fallback: "{{$.address.city}}",
 				};
 				expect(JsonPathUtils.parse(patternForArray, data)).toEqual("Nara");
-			});
+			},
+		);
 
-		it("should not use fallback pattern if some results are missing, " +
-			"onError=fallback but there is no fallback pattern", () => {
+		it(
+			"should not use fallback pattern if some results are missing, " +
+				"onError=fallback but there is no fallback pattern",
+			() => {
 				const pattern: TStringPattern = {
 					stringPattern: "{{$.abc}}, {{$.lastName}}! {{$.firstName}}",
 					onError: "fallback",
 					fallback: null,
 				};
 				expect(JsonPathUtils.parse(pattern, data)).toEqual(", doe! John");
-			});
+			},
+		);
 
 		describe("mask", () => {
 			describe("uinfin", () => {
@@ -319,23 +325,31 @@ describe("JsonPathUtils", () => {
 				expect(JsonPathUtils.parse(pattern, data)).toEqual(null);
 			});
 
-			it("should return correct output for object pattern with wrap:false, " +
-				"with actual empty array result", () => {
+			it(
+				"should return correct output for object pattern with wrap:false, " + "with actual empty array result",
+				() => {
 					const pattern = { objectPattern: "$.emptyArray", wrap: false };
 					expect(JsonPathUtils.parse(pattern, data)).toEqual([]);
-				});
+				},
+			);
 
-			it("should return correct output for object pattern with wrap:false, " +
-				"with actual single-element array result", () => {
+			it(
+				"should return correct output for object pattern with wrap:false, " +
+					"with actual single-element array result",
+				() => {
 					const pattern = { objectPattern: "$.singleElemArray", wrap: false };
 					expect(JsonPathUtils.parse(pattern, data)).toEqual(["234"]);
-				});
+				},
+			);
 
-			it("should return correct output for object pattern with wrap:false, " +
-				"with actual multi-element array result", () => {
+			it(
+				"should return correct output for object pattern with wrap:false, " +
+					"with actual multi-element array result",
+				() => {
 					const pattern = { objectPattern: "$.multiElemArray", wrap: false };
 					expect(JsonPathUtils.parse(pattern, data)).toEqual(["234", "987"]);
-				});
+				},
+			);
 		});
 
 		describe("Wrap: 'unwrap'", () => {
@@ -386,23 +400,32 @@ describe("JsonPathUtils", () => {
 				expect(JsonPathUtils.parse(pattern, data)).toEqual(null);
 			});
 
-			it("should return correct output for object pattern with wrap:'unwrap', " +
-				"with actual empty array result", () => {
+			it(
+				"should return correct output for object pattern with wrap:'unwrap', " +
+					"with actual empty array result",
+				() => {
 					const pattern: TPattern = { objectPattern: "$.emptyArray", wrap: "unwrap" };
 					expect(JsonPathUtils.parse(pattern, data)).toEqual([]);
-				});
+				},
+			);
 
-			it("should return correct output for object pattern with wrap:'unwrap', " +
-				"with actual single-element array result", () => {
+			it(
+				"should return correct output for object pattern with wrap:'unwrap', " +
+					"with actual single-element array result",
+				() => {
 					const pattern: TPattern = { objectPattern: "$.singleElemArray", wrap: "unwrap" };
 					expect(JsonPathUtils.parse(pattern, data)).toEqual("234");
-				});
+				},
+			);
 
-			it("should return correct output for object pattern with wrap:'unwrap', " +
-				"with actual multi-element array result", () => {
+			it(
+				"should return correct output for object pattern with wrap:'unwrap', " +
+					"with actual multi-element array result",
+				() => {
 					const pattern: TPattern = { objectPattern: "$.multiElemArray", wrap: "unwrap" };
 					expect(JsonPathUtils.parse(pattern, data)).toEqual(["234", "987"]);
-				});
+				},
+			);
 		});
 
 		describe("Wrap: 'wrap'", () => {
@@ -455,23 +478,31 @@ describe("JsonPathUtils", () => {
 				expect(JsonPathUtils.parse(pattern, data)).toEqual([null]);
 			});
 
-			it("should return correct output for object pattern with wrap:'wrap', " +
-				"with actual empty array result", () => {
+			it(
+				"should return correct output for object pattern with wrap:'wrap', " + "with actual empty array result",
+				() => {
 					const pattern: TPattern = { objectPattern: "$.emptyArray", wrap: "wrap" };
 					expect(JsonPathUtils.parse(pattern, data)).toEqual([]);
-				});
+				},
+			);
 
-			it("should return correct output for object pattern with wrap:'wrap', " +
-				"with actual single-element array result", () => {
+			it(
+				"should return correct output for object pattern with wrap:'wrap', " +
+					"with actual single-element array result",
+				() => {
 					const pattern: TPattern = { objectPattern: "$.singleElemArray", wrap: "wrap" };
 					expect(JsonPathUtils.parse(pattern, data)).toEqual(["234"]);
-				});
+				},
+			);
 
-			it("should return correct output for object pattern with wrap:'wrap', " +
-				"with actual multi-element array result", () => {
+			it(
+				"should return correct output for object pattern with wrap:'wrap', " +
+					"with actual multi-element array result",
+				() => {
 					const pattern: TPattern = { objectPattern: "$.multiElemArray", wrap: "wrap" };
 					expect(JsonPathUtils.parse(pattern, data)).toEqual(["234", "987"]);
-				});
+				},
+			);
 		});
 	});
 
@@ -676,13 +707,16 @@ describe("JsonPathUtils", () => {
 
 		it("should iterate through array objects and replace nested patterns", () => {
 			const template = {
-				search: [{
-					resourceType: { stringPattern: "{{$.data.resourceType}}" },
-					resourceSubType: { stringPattern: "{{$.data.resourceSubType}}" },
-				}, {
-					startTime: { stringPattern: "{{$.data.date}}T{{$.data.startTime}}+08:00" },
-					endTime: { stringPattern: "{{$.data.date}}T{{$.data.endTime}}+08:00" },
-				}],
+				search: [
+					{
+						resourceType: { stringPattern: "{{$.data.resourceType}}" },
+						resourceSubType: { stringPattern: "{{$.data.resourceSubType}}" },
+					},
+					{
+						startTime: { stringPattern: "{{$.data.date}}T{{$.data.startTime}}+08:00" },
+						endTime: { stringPattern: "{{$.data.date}}T{{$.data.endTime}}+08:00" },
+					},
+				],
 			};
 			const ctx = {
 				data: {
@@ -709,8 +743,10 @@ describe("JsonPathUtils", () => {
 			expect(JsonPathUtils.replacePattern(template, ctx)).toEqual(expected);
 		});
 
-		it("should iterate through and replace array object if it contains direct " +
-			"stringPattern or objectPattern keys", () => {
+		it(
+			"should iterate through and replace array object if it contains direct " +
+				"stringPattern or objectPattern keys",
+			() => {
 				const template = {
 					search: {
 						resourceType: { stringPattern: "{{$.data.resourceType}}" },
@@ -743,14 +779,11 @@ describe("JsonPathUtils", () => {
 						resourceType: "123",
 						resourceSubType: "234",
 					},
-					dateTime: [
-						"2023-03-30T09:00+08:00",
-						"2023-03-30T10:00+08:00",
-						"2023-03-10",
-					],
+					dateTime: ["2023-03-30T09:00+08:00", "2023-03-30T10:00+08:00", "2023-03-10"],
 				};
 				expect(JsonPathUtils.replacePattern(template, ctx)).toEqual(expected);
-			});
+			},
+		);
 
 		it("should return primitive values as is", () => {
 			const template = {
@@ -783,17 +816,13 @@ describe("JsonPathUtils", () => {
 					name: "myResource",
 					quantity: 8,
 				},
-				dateTime: [
-					"2023-03-30T09:00+08:00",
-					"2023-03-30T10:00+08:00",
-					"2023-03-28",
-				],
+				dateTime: ["2023-03-30T09:00+08:00", "2023-03-30T10:00+08:00", "2023-03-28"],
 			};
 			expect(JsonPathUtils.replacePattern(template, ctx)).toEqual(expected);
 		});
 	});
 
-	describe('ArrayMapPattern', () => {
+	describe("ArrayMapPattern", () => {
 		const template = {
 			mapped: {
 				arrayMapPattern: "$.phoneNumbers",
@@ -806,7 +835,7 @@ describe("JsonPathUtils", () => {
 			},
 		};
 
-		it('should map an array', () => {
+		it("should map an array", () => {
 			const expected = {
 				mapped: [
 					{
@@ -833,14 +862,14 @@ describe("JsonPathUtils", () => {
 			expect(JsonPathUtils.replacePattern(template, data)).toEqual(expected);
 		});
 
-		it('should map empty array to empty array', () => {
+		it("should map empty array to empty array", () => {
 			const expected = {
 				mapped: [],
 			};
 			expect(JsonPathUtils.replacePattern(template, { phoneNumbers: [] })).toEqual(expected);
 		});
 
-		it('should map undefined array to empty array', () => {
+		it("should map undefined array to empty array", () => {
 			const expected = {
 				mapped: [],
 			};
@@ -848,8 +877,8 @@ describe("JsonPathUtils", () => {
 		});
 	});
 
-	describe('ArrayMergePattern', () => {
-		describe('merge', () => {
+	describe("ArrayMergePattern", () => {
+		describe("merge", () => {
 			const template = {
 				mapped: {
 					arrayMergePattern: [
@@ -863,7 +892,7 @@ describe("JsonPathUtils", () => {
 				},
 			};
 
-			it('should merge the arrays', () => {
+			it("should merge the arrays", () => {
 				const expected = {
 					mapped: [
 						"just a string",
@@ -882,38 +911,38 @@ describe("JsonPathUtils", () => {
 				expect(JsonPathUtils.replacePattern(template, data)).toEqual(expected);
 			});
 
-			it('should work with empty array', () => {
+			it("should work with empty array", () => {
 				const expected = {
 					mapped: [],
 				};
-				expect(JsonPathUtils.replacePattern(
-					{ mapped: { arrayMergePattern: [] } },
-					{ phoneNumbers: [] },
-				)).toEqual(expected);
+				expect(
+					JsonPathUtils.replacePattern({ mapped: { arrayMergePattern: [] } }, { phoneNumbers: [] }),
+				).toEqual(expected);
 			});
 
-			it('should remove duplicates', () => {
+			it("should remove duplicates", () => {
 				const expected = {
-					mapped: [
-						"just a string",
-						"iPhone",
-						"home",
-					],
+					mapped: ["just a string", "iPhone", "home"],
 				};
 
-				expect(JsonPathUtils.replacePattern({
-					mapped: {
-						arrayMergePattern: [
-							"just a string",
-							{ objectPattern: "$.phoneNumbers..type", wrap: "wrap" },
-						],
-						removeDuplicates: true,
-					},
-				}, data)).toEqual(expected);
+				expect(
+					JsonPathUtils.replacePattern(
+						{
+							mapped: {
+								arrayMergePattern: [
+									"just a string",
+									{ objectPattern: "$.phoneNumbers..type", wrap: "wrap" },
+								],
+								removeDuplicates: true,
+							},
+						},
+						data,
+					),
+				).toEqual(expected);
 			});
 		});
 
-		describe('intersect', () => {
+		describe("intersect", () => {
 			const template = {
 				intersectArrays: {
 					arrayMergePattern: [
@@ -927,82 +956,70 @@ describe("JsonPathUtils", () => {
 					mergeMethod: "intersect",
 				},
 				intersectValue: {
-					arrayMergePattern: [
-						{ objectPattern: "$.phoneNumbers..number", wrap: "wrap" },
-						"0123-4567-8910",
-					],
+					arrayMergePattern: [{ objectPattern: "$.phoneNumbers..number", wrap: "wrap" }, "0123-4567-8910"],
 					mergeMethod: "intersect",
 				},
 			};
 
-			it('should return the intersection array', () => {
+			it("should return the intersection array", () => {
 				const expected = {
-					intersectArrays: [
-						"0123-4567-8888",
-						"0123-4567-8910",
-					],
-					intersectValue: [
-						"0123-4567-8910",
-					],
+					intersectArrays: ["0123-4567-8888", "0123-4567-8910"],
+					intersectValue: ["0123-4567-8910"],
 				};
 
-				expect(JsonPathUtils.replacePattern(template, data))
-					.toEqual(expected);
+				expect(JsonPathUtils.replacePattern(template, data)).toEqual(expected);
 			});
 
-			it('should return empty intersections', () => {
+			it("should return empty intersections", () => {
 				const expected = {
 					intersectArrays: [],
 					intersectValue: [],
 				};
 
-				expect(JsonPathUtils.replacePattern(template, {
-					phoneNumbers: [],
-				})).toEqual(expected);
+				expect(
+					JsonPathUtils.replacePattern(template, {
+						phoneNumbers: [],
+					}),
+				).toEqual(expected);
 
 				expect(JsonPathUtils.replacePattern(template, {})).toEqual(expected);
 
-				expect(JsonPathUtils.replacePattern(template, {
-					phoneNumbers: [
-						{
-							type: "iPhone",
-							number: "0123-4567-9999",
-						},
-						{
-							type: "home",
-							number: "0123-4567-0000",
-						},
-					],
-				})).toEqual(expected);
+				expect(
+					JsonPathUtils.replacePattern(template, {
+						phoneNumbers: [
+							{
+								type: "iPhone",
+								number: "0123-4567-9999",
+							},
+							{
+								type: "home",
+								number: "0123-4567-0000",
+							},
+						],
+					}),
+				).toEqual(expected);
 			});
 
-			it('should evaluate nested patterns in sub-arrays', () => {
+			it("should evaluate nested patterns in sub-arrays", () => {
 				const nested = {
 					p: {
 						arrayMergePattern: [
 							{ objectPattern: "$.phoneNumbers..number", wrap: "wrap" },
-							[
-								{ stringPattern: "{{$.phoneNumbers[0].number}}" },
-								"0123-4567-8910",
-							],
+							[{ stringPattern: "{{$.phoneNumbers[0].number}}" }, "0123-4567-8910"],
 						],
 						mergeMethod: "intersect",
 					},
 				};
 				const expected = {
-					p: [
-						"0123-4567-8888",
-						"0123-4567-8910",
-					],
+					p: ["0123-4567-8888", "0123-4567-8910"],
 				};
 
-				expect(JsonPathUtils.replacePattern(nested, data))
-					.toEqual(expected);
+				expect(JsonPathUtils.replacePattern(nested, data)).toEqual(expected);
 			});
 		});
 	});
 
-	describe('ObjectMergePattern', () => {
+	describe("ObjectMergePattern", () => {
 		const addressData = {
 			address1: {
 				streetAddress: "naist street",
@@ -1023,7 +1040,7 @@ describe("JsonPathUtils", () => {
 			},
 		};
 
-		it('should merge the objects', () => {
+		it("should merge the objects", () => {
 			const expected = {
 				mapped: {
 					streetAddress: "bob street",
@@ -1037,8 +1054,8 @@ describe("JsonPathUtils", () => {
 		});
 	});
 
-	describe('ConditionalPattern', () => {
-		it('should return the true primitive value', () => {
+	describe("ConditionalPattern", () => {
+		it("should return the true primitive value", () => {
 			const template = {
 				p: {
 					conditionalPattern: "$.field",
@@ -1055,7 +1072,7 @@ describe("JsonPathUtils", () => {
 			expect(JsonPathUtils.replacePattern(template, { field: { hi: "hello" } })).toEqual(expected);
 		});
 
-		it('should return the false primitive value', () => {
+		it("should return the false primitive value", () => {
 			const template = {
 				p: {
 					conditionalPattern: "$.field",
@@ -1072,7 +1089,7 @@ describe("JsonPathUtils", () => {
 			expect(JsonPathUtils.replacePattern(template, { field: [] })).toEqual(expected);
 		});
 
-		it('should return undefined if no false value given and it is false', () => {
+		it("should return undefined if no false value given and it is false", () => {
 			const template = {
 				p: {
 					conditionalPattern: "$.field",
@@ -1085,7 +1102,7 @@ describe("JsonPathUtils", () => {
 			expect(JsonPathUtils.replacePattern(template, { field: "" })).toEqual(expected);
 		});
 
-		it('should evaluate the true pattern', () => {
+		it("should evaluate the true pattern", () => {
 			const template = {
 				p: {
 					conditionalPattern: "$.age",
@@ -1099,7 +1116,7 @@ describe("JsonPathUtils", () => {
 			expect(JsonPathUtils.replacePattern(template, data)).toEqual(expected);
 		});
 
-		it('should evaluate the false pattern', () => {
+		it("should evaluate the false pattern", () => {
 			const template = {
 				p: {
 					conditionalPattern: "$.boolAttr",
@@ -1113,7 +1130,7 @@ describe("JsonPathUtils", () => {
 			expect(JsonPathUtils.replacePattern(template, data)).toEqual(expected);
 		});
 
-		it('should evaluate the false pattern for empty array', () => {
+		it("should evaluate the false pattern for empty array", () => {
 			const template = {
 				p: {
 					conditionalPattern: "$.phoneNumbers[?(@.type=='abc')]",
@@ -1159,23 +1176,22 @@ describe("JsonPathUtils", () => {
 			expect(JsonPathUtils.replacePattern(template, data)).toEqual(expected);
 		});
 
-		it('should check for missing values with conditionalCheck="equal" and conditionalCheckValue=undefined (default)',
-			() => {
-				const template = {
-					p: {
-						conditionalPattern: "$.keyDoesntExist",
-						conditionalCheck: "equal",
-						trueValue: "it doesn't not exist",
-						falseValue: "it exist",
-					} as TConditionalPattern,
-				};
-				const expected = {
-					p: "it doesn't not exist",
-				};
-				expect(JsonPathUtils.replacePattern(template, data)).toEqual(expected);
-			});
+		it('should check for missing values with conditionalCheck="equal" and conditionalCheckValue=undefined (default)', () => {
+			const template = {
+				p: {
+					conditionalPattern: "$.keyDoesntExist",
+					conditionalCheck: "equal",
+					trueValue: "it doesn't not exist",
+					falseValue: "it exist",
+				} as TConditionalPattern,
+			};
+			const expected = {
+				p: "it doesn't not exist",
+			};
+			expect(JsonPathUtils.replacePattern(template, data)).toEqual(expected);
+		});
 
-		describe('numerical check', () => {
+		describe("numerical check", () => {
 			it.each([
 				["lt", "age", 27, true],
 				["lt", "age", 26, false],
@@ -1211,7 +1227,7 @@ describe("JsonPathUtils", () => {
 				["gte", "countString", 122, true],
 				["gte", "countString", 123, true],
 				["gte", "countString", 124, false],
-			])('should check %s against %s(%d) as %s', (check, key, value, expected) => {
+			])("should check %s against %s(%d) as %s", (check, key, value, expected) => {
 				const template = {
 					p: {
 						conditionalPattern: "$." + key,
@@ -1225,14 +1241,14 @@ describe("JsonPathUtils", () => {
 			});
 		});
 
-		describe('date check', () => {
+		describe("date check", () => {
 			it.each`
-			check | value | expected
-			${"isBefore"} | ${"2023-03-10T13:25:55+08:00"} | ${true}
-			${"isBefore"} | ${"2023-03-10T13:25:53+08:00"} | ${false}
-			${"isAfter"} | ${"2023-03-10T13:25:53+08:00"} | ${true}
-			${"isAfter"} | ${"2023-03-10T13:25:55+08:00"} | ${false}
-			`('should check $check=$expected with full datetime', ({ check, value, expected }) => {
+				check         | value                          | expected
+				${"isBefore"} | ${"2023-03-10T13:25:55+08:00"} | ${true}
+				${"isBefore"} | ${"2023-03-10T13:25:53+08:00"} | ${false}
+				${"isAfter"}  | ${"2023-03-10T13:25:53+08:00"} | ${true}
+				${"isAfter"}  | ${"2023-03-10T13:25:55+08:00"} | ${false}
+			`("should check $check=$expected with full datetime", ({ check, value, expected }) => {
 				const template = {
 					p: {
 						conditionalPattern: "$.someDatetime1",
@@ -1246,12 +1262,12 @@ describe("JsonPathUtils", () => {
 			});
 
 			it.each`
-			check | value | expected
-			${"isBefore"} | ${"2023-03-11T00:00:00+08:00"} | ${true}
-			${"isBefore"} | ${"2023-03-09T00:00:00+08:00"} | ${false}
-			${"isAfter"} | ${"2023-03-09T00:00:00+08:00"} | ${true}
-			${"isAfter"} | ${"2023-03-11T00:00:00+08:00"} | ${false}
-			`('should check $check=$expected with full date-only', ({ check, value, expected }) => {
+				check         | value                          | expected
+				${"isBefore"} | ${"2023-03-11T00:00:00+08:00"} | ${true}
+				${"isBefore"} | ${"2023-03-09T00:00:00+08:00"} | ${false}
+				${"isAfter"}  | ${"2023-03-09T00:00:00+08:00"} | ${true}
+				${"isAfter"}  | ${"2023-03-11T00:00:00+08:00"} | ${false}
+			`("should check $check=$expected with full date-only", ({ check, value, expected }) => {
 				const template = {
 					p: {
 						conditionalPattern: "$.someDate",
@@ -1266,54 +1282,53 @@ describe("JsonPathUtils", () => {
 		});
 	});
 
-
-	describe('Complex RBS examples', () => {
+	describe("Complex RBS examples", () => {
 		const rbsData = {
 			// this is IResource (excerpt)
-			"name": "Lychee Room",
-			"categories": [
+			name: "Lychee Room",
+			categories: [
 				{
-					"id": "1",
-					"name": "Resource Usage",
-					"type": "RESOURCE_USAGE",
-					"labels": [
-						{ "id": "u1", "name": "Meeting" },
-						{ "id": "u2", "name": "Workshop" },
+					id: "1",
+					name: "Resource Usage",
+					type: "RESOURCE_USAGE",
+					labels: [
+						{ id: "u1", name: "Meeting" },
+						{ id: "u2", name: "Workshop" },
 					],
 				},
 				{
-					"id": "2",
-					"name": "Built-in Amenities",
-					"type": "BUILT_IN_AMENITIES",
-					"labels": [
-						{ "id": "a1", "name": "TV" },
-						{ "id": "a2", "name": "Microphone" },
+					id: "2",
+					name: "Built-in Amenities",
+					type: "BUILT_IN_AMENITIES",
+					labels: [
+						{ id: "a1", name: "TV" },
+						{ id: "a2", name: "Microphone" },
 					],
 				},
 			],
-			"resourceLayouts": [
+			resourceLayouts: [
 				{
-					"id": "l1",
-					"name": "Classroom",
-					"description": "All facing forwards",
-					"imageUrls": "https://image.com/1",
-					"maxCapacity": 10,
-					"setupTime": 20,
-					"teardownTime": 20,
+					id: "l1",
+					name: "Classroom",
+					description: "All facing forwards",
+					imageUrls: "https://image.com/1",
+					maxCapacity: 10,
+					setupTime: 20,
+					teardownTime: 20,
 				},
 				{
-					"id": "l2",
-					"name": "Meeting",
-					"description": "All facing the center",
-					"imageUrls": "https://image.com/2",
-					"maxCapacity": 14,
-					"setupTime": 10,
-					"teardownTime": 10,
+					id: "l2",
+					name: "Meeting",
+					description: "All facing the center",
+					imageUrls: "https://image.com/2",
+					maxCapacity: 14,
+					setupTime: 10,
+					teardownTime: 10,
 				},
 			],
 		};
 
-		describe('Categories', () => {
+		describe("Categories", () => {
 			const template: Record<string, TPattern | TPattern[]> = {
 				// this is the resource response mapping (excerpt)
 				additionalDetails: [
@@ -1334,9 +1349,9 @@ describe("JsonPathUtils", () => {
 				const expected = {
 					additionalDetails: [
 						{
-							key: 'Booking usage',
-							title: 'Booking usage',
-							items: ['Meeting', 'Workshop'],
+							key: "Booking usage",
+							title: "Booking usage",
+							items: ["Meeting", "Workshop"],
 						},
 					],
 				};
@@ -1344,25 +1359,27 @@ describe("JsonPathUtils", () => {
 				expect(JsonPathUtils.replacePattern(template, rbsData)).toEqual(expected);
 			});
 
-			it('should map a missing or empty category to `undefined`', () => {
+			it("should map a missing or empty category to `undefined`", () => {
 				// missing categories
 				expect(JsonPathUtils.replacePattern(template, {})).toEqual({ additionalDetails: [undefined] });
 
 				// empty (no labels)
-				expect(JsonPathUtils.replacePattern(template,
-					{ "categories": [] })).toEqual({ additionalDetails: [undefined] });
+				expect(JsonPathUtils.replacePattern(template, { categories: [] })).toEqual({
+					additionalDetails: [undefined],
+				});
 			});
 		});
 
-		describe('Layouts (list)', () => {
+		describe("Layouts (list)", () => {
 			const template: Record<string, TPattern | TPattern[]> = {
 				additionalDetails: [
 					{
-						conditionalPattern: '$.resourceLayouts.*',
+						conditionalPattern: "$.resourceLayouts.*",
 						trueValue: {
 							key: "Available layouts",
 							title: "Available layouts",
-							description: "Additional time may be added when checking for availability due to setup and teardown of layout.",
+							description:
+								"Additional time may be added when checking for availability due to setup and teardown of layout.",
 							items: {
 								arrayMapPattern: "$.resourceLayouts.*",
 								itemMapping: {
@@ -1374,14 +1391,16 @@ describe("JsonPathUtils", () => {
 				],
 			};
 
-			it('should map layouts', () => { // (with string concats)
+			it("should map layouts", () => {
+				// (with string concats)
 				const expected = {
 					additionalDetails: [
 						{
-							key: 'Available layouts',
-							title: 'Available layouts',
-							description: 'Additional time may be added when checking for availability due to setup and teardown of layout.',
-							items: ['Classroom (10 pax)', 'Meeting (14 pax)'],
+							key: "Available layouts",
+							title: "Available layouts",
+							description:
+								"Additional time may be added when checking for availability due to setup and teardown of layout.",
+							items: ["Classroom (10 pax)", "Meeting (14 pax)"],
 						},
 					],
 				};
@@ -1389,21 +1408,22 @@ describe("JsonPathUtils", () => {
 				expect(JsonPathUtils.replacePattern(template, rbsData)).toEqual(expected);
 			});
 
-			it('should map layouts to `undefined` if no layouts', () => {
+			it("should map layouts to `undefined` if no layouts", () => {
 				// missing layouts
 				expect(JsonPathUtils.replacePattern(template, {})).toEqual({ additionalDetails: [undefined] });
 
 				// empty (no layouts)
-				expect(JsonPathUtils.replacePattern(template,
-					{ "resourceLayouts": [] })).toEqual({ additionalDetails: [undefined] });
+				expect(JsonPathUtils.replacePattern(template, { resourceLayouts: [] })).toEqual({
+					additionalDetails: [undefined],
+				});
 			});
 		});
 
-		describe('Layout modal', () => {
+		describe("Layout modal", () => {
 			const template: Record<string, TPattern | TPattern[]> = {
 				additionalDetails: [
 					{
-						conditionalPattern: '$.resourceLayouts.*',
+						conditionalPattern: "$.resourceLayouts.*",
 						trueValue: {
 							key: "View layout details",
 							title: "View layout details",
@@ -1428,22 +1448,22 @@ describe("JsonPathUtils", () => {
 				],
 			};
 
-			it('should map image modal', () => {
+			it("should map image modal", () => {
 				const expected = {
 					additionalDetails: [
 						{
-							key: 'View layout details',
-							title: 'View layout details',
+							key: "View layout details",
+							title: "View layout details",
 							items: [
 								{
-									label: 'Classroom (10 pax)',
+									label: "Classroom (10 pax)",
 									description: [
 										{ label: "Setup time", value: "20 minutes" },
 										{ label: "Teardown time", value: "20 minutes" },
 									],
 								},
 								{
-									label: 'Meeting (14 pax)',
+									label: "Meeting (14 pax)",
 									description: [
 										{ label: "Setup time", value: "10 minutes" },
 										{ label: "Teardown time", value: "10 minutes" },
