@@ -4,12 +4,10 @@ import { nodeResolve } from "@rollup/plugin-node-resolve";
 import fs from "fs";
 import path from "path";
 import generatePackageJson from "rollup-plugin-generate-package-json";
-import peerDepsExternal from "rollup-plugin-peer-deps-external";
 import typescript from "rollup-plugin-typescript2";
 import pkg from "./package.json";
 
 export const plugins = [
-    peerDepsExternal(), // Exclude peer dependencies from bundle
     nodeResolve(), // Locates modules in the project's node_modules directory
     commonjs(), // converts CommonJS to ES6 modules
     typescript({
