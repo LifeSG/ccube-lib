@@ -1,0 +1,10 @@
+# dependencies
+node_modules
+
+# build
+dist
+*.tgz
+
+# misc
+junit.xml
+.DS_Store
