@@ -28,6 +28,11 @@
         "url": "https://github.com/LifeSG/ccube-lib/issues"
     },
     "homepage": "https://github.com/LifeSG/ccube-lib#readme",
+    "dependencies": {
+        "class-transformer": "^0.5.1",
+        "class-validator": "^0.14.1",
+        "reflect-metadata": "^0.2.1"
+    },
     "devDependencies": {
         "@babel/core": "^7.23.9",
         "@babel/preset-env": "^7.23.9",

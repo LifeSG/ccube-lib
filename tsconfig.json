@@ -23,7 +23,9 @@
         "strictBindCallApply": true, // check that functions are invoked with the correct arguments
         "allowSyntheticDefaultImports": true, // allow for imports e.g. import React from "react"
         "alwaysStrict": true, // ensures files are parsed in ECMAScript strict mode
-        "noFallthroughCasesInSwitch": true // report error for fallthrough cases
+        "noFallthroughCasesInSwitch": true, // report error for fallthrough cases
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true
     },
     "include": ["src/**/*"],
     "exclude": ["node_modules", "rollup.config.js", "**/__tests__"]
