@@ -16,4 +16,5 @@ module.exports = () => ({
     verbose: true,
     bail: false,
     reporters: ["default", ["jest-junit", { outputName: "junit.xml" }]],
+    setupFilesAfterEnv: ["<rootDir>/jest-setup.ts"],
 });
