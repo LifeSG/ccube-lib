@@ -22,7 +22,8 @@ We have set variables in the settings of the GitHub repository that is needed to
 
 These variables are:
 
--   GITLAB_TOKEN - The token created in GitLab to authenticate the use of the API
+-   GITLAB_PAT - The personal access token by the gitlab user (currently no organisation pat)
+-   GITLAB_TOKEN - The token created in GitLab to authenticate the use of the API ([instruction](https://docs.gitlab.com/ee/ci/triggers/#create-a-pipeline-trigger-token))
 -   GITLAB_ENDPOINT - The host domain of GitLab
 -   GITLAB_PROJECT_ID - The project ID of the GitLab pipeline that builds the lib
 -   GITLAB_REPO_NAME - The name of the repository being built
