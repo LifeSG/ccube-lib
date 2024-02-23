@@ -2,6 +2,7 @@ import {
     IsEmail,
     IsEnum,
     IsNotEmpty,
+    IsObject,
     IsOptional,
     IsString,
 } from "class-validator";
@@ -41,4 +42,14 @@ export class UserIdentifiers {
     @IsEmail()
     @IsOptional()
     public emailAddress?: Nullable<string>;
+}
+
+export class UserData {
+    @IsObject()
+    @IsOptional()
+    public myinfo?: Partial<Record<string, unknown>>;
+
+    @IsObject()
+    @IsOptional()
+    public myinfoBusiness?: Partial<Record<string, unknown>>;
 }
