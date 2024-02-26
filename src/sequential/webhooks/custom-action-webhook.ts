@@ -9,7 +9,10 @@ import { ActionInformation, ActionWebhookRequestBodyApiDomain } from "./shared";
  *
  * More info: https://dcubeux.gitbook.io/icecap/documentation/webhooks/custom-action
  */
-export class CustomActionWebhookRequestBodyApiDomain extends ActionWebhookRequestBodyApiDomain {
+export class CustomActionWebhookRequestBodyApiDomain<
+    ExtraData = Record<string, unknown>,
+    SessionData = Record<string, Nullable<unknown>>,
+> extends ActionWebhookRequestBodyApiDomain<ExtraData, SessionData> {
     @Type(() => ActionInformation)
     @ValidateNested()
     public flowAction: ActionInformation;

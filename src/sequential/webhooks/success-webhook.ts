@@ -1,3 +1,4 @@
+import type { Nullable } from "../../types";
 import { ActionWebhookRequestBodyApiDomain } from "./shared";
 
 /**
@@ -5,7 +6,10 @@ import { ActionWebhookRequestBodyApiDomain } from "./shared";
  *
  * More info: https://dcubeux.gitbook.io/icecap/documentation/webhooks/success-action
  */
-export class SuccessWebhookRequestApiDomain extends ActionWebhookRequestBodyApiDomain {
+export class SuccessWebhookRequestApiDomain<
+    ExtraData = Record<string, unknown>,
+    SessionData = Record<string, Nullable<unknown>>,
+> extends ActionWebhookRequestBodyApiDomain<ExtraData, SessionData> {
     constructor(props: Readonly<SuccessWebhookRequestApiDomain>) {
         super();
         Object.assign(this, props);

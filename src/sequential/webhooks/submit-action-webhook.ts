@@ -1,5 +1,6 @@
 import { Type } from "class-transformer";
 import { IsObject, IsString, ValidateNested } from "class-validator";
+import type { Nullable } from "../../types";
 import { ActionInformation, ActionWebhookRequestBodyApiDomain } from "./shared";
 
 /**
@@ -7,7 +8,10 @@ import { ActionInformation, ActionWebhookRequestBodyApiDomain } from "./shared";
  *
  * More info: https://dcubeux.gitbook.io/icecap/documentation/webhooks/submit-action
  */
-export class SubmitActionWebhookRequestBodyApiDomain extends ActionWebhookRequestBodyApiDomain {
+export class SubmitActionWebhookRequestBodyApiDomain<
+    ExtraData = Record<string, unknown>,
+    SessionData = Record<string, Nullable<unknown>>,
+> extends ActionWebhookRequestBodyApiDomain<ExtraData, SessionData> {
     @Type(() => ActionInformation)
     @ValidateNested()
     public flowAction: ActionInformation;

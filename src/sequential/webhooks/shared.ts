@@ -1,17 +1,20 @@
 import { IsObject, IsOptional, IsString } from "class-validator";
 import type { Nullable } from "../../types";
 
-export class ActionWebhookRequestBodyApiDomain {
+export class ActionWebhookRequestBodyApiDomain<
+    ExtraData = Record<string, unknown>,
+    SessionData = Record<string, Nullable<unknown>>,
+> {
     @IsString()
     public sessionId: string;
 
     @IsObject()
     @IsOptional()
-    public sessionData?: Nullable<Record<string, Nullable<unknown>>>;
+    public sessionData?: Nullable<SessionData>;
 
     @IsObject()
     @IsOptional()
-    public extraData?: Nullable<Record<string, unknown>>;
+    public extraData?: Nullable<ExtraData>;
 }
 
 export class ActionInformation {
