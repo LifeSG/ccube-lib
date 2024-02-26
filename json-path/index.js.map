@@ -1,0 +1,1 @@
+{"version":3,"file":"index.js","sources":["../../src/json-path/index.ts"],"sourcesContent":["export const parse = () => {\n    return \"STUB\";\n};\n"],"names":[],"mappings":"AAAO,MAAM,KAAK,GAAG,MAAK;AACtB,IAAA,OAAO,MAAM,CAAC;AAClB;;;;"}
