@@ -40,3 +40,4 @@ The API contains variables that are important to be passed in the body of the re
 -   PIPELINE_COMMIT_MSG - the 1st line of the commit message
 
 Then the Project in GitLab responsible for running the pipeline will create and start the pipeline.
+
