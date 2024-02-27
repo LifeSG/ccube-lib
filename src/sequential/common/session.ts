@@ -11,6 +11,7 @@ import type { Nullable } from "../../types";
 export enum SessionStatus {
     SUCCESS = "success",
     INCOMPLETE = "incomplete",
+    EDIT = "edit",
 }
 
 export enum UserLoginType {
