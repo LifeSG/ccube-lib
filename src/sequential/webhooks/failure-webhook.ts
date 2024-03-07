@@ -8,6 +8,14 @@ import {
 import type { Nullable } from "../../types";
 import { ActionInformation } from "./shared";
 
+export class FailureData {
+    @IsString()
+    public httpStatusCode: string;
+
+    @IsString()
+    public errorMessage: string;
+}
+
 /**
  * Request parameters for the failure webhook
  *
@@ -36,12 +44,4 @@ export class FailureWebhookRequestBodyApiDomain<
     constructor(props: Readonly<FailureWebhookRequestBodyApiDomain>) {
         Object.assign(this, props);
     }
-}
-
-export class FailureData {
-    @IsString()
-    public httpStatusCode: string;
-
-    @IsString()
-    public errorMessage: string;
 }
